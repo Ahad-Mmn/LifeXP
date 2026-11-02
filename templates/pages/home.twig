@@ -3,17 +3,20 @@
 {% block title %}Home | {{ app_name }}{% endblock %}
 
 {% block content %}
-    <h2>Welcome, {{ player }}!</h2>
-    <p>Your adventure begins here. Twig is working.</p>
+    <h2>Turn real life into an RPG</h2>
+    <p>Complete everyday quests, earn XP and level up.</p>
 
-    {% if db_error %}
-        <p style="color:#f87171;">Database error: {{ db_error }}</p>
-    {% else %}
-        <h3>Quest categories (read from MySQL)</h3>
-        <ul>
-            {% for c in categories %}
-                <li style="color: {{ c.color }};">{{ c.name }}</li>
-            {% endfor %}
-        </ul>
+    {% if not current_user %}
+        <p>
+            <a class="btn" href="index.php?page=register">Register</a>
+            <a class="btn btn-secondary" href="index.php?page=login">Log in</a>
+        </p>
     {% endif %}
+
+    <h3>Quest categories</h3>
+    <ul>
+        {% for c in categories %}
+            <li style="color: {{ c.color }};">{{ c.name }}</li>
+        {% endfor %}
+    </ul>
 {% endblock %}

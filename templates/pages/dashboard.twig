@@ -1,0 +1,28 @@
+{% extends "base.twig" %}
+
+{% block title %}Dashboard | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>{{ user.username }}</h2>
+    <p class="hero-title">Level {{ progress.level }} &middot; {{ progress.title }}</p>
+
+    <div class="xp-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ progress.percent }}">
+        <div class="xp-fill" style="width: {{ progress.percent }}%;"></div>
+    </div>
+    <p class="xp-text">
+        {{ progress.xp_in_level }} / {{ progress.xp_needed }} XP to level {{ progress.level + 1 }}
+        ({{ user.total_xp }} XP total)
+    </p>
+
+    <p class="streak">
+        &#128293; Streak: <strong>{{ streak }}</strong> day{{ streak == 1 ? '' : 's' }}
+        &middot; Best: {{ user.longest_streak }}
+    </p>
+    {% if streak == 0 %}
+        <p class="hint">Complete a quest today to start a streak!</p>
+    {% endif %}
+
+    <p><a class="btn" href="index.php?page=quests">View my quests</a></p>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.twig" %}
+
+{% block title %}Log in | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Welcome back</h2>
+    {% include 'partials/errors.twig' %}
+
+    <form method="post" action="index.php?page=login" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" value="{{ old.username }}"
+               maxlength="20" autocomplete="username" required>
+
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" maxlength="72"
+               autocomplete="current-password" required>
+
+        <label for="captcha">Are you human? What is {{ captcha_question }} ?</label>
+        <input type="text" id="captcha" name="captcha" maxlength="4" autocomplete="off" required>
+
+        <button type="submit" class="btn">Log in</button>
+    </form>
+    <p>New here? <a href="index.php?page=register">Create an account</a></p>
+</div>
+{% endblock %}

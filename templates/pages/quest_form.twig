@@ -1,0 +1,43 @@
+{% extends "base.twig" %}
+
+{% block title %}{{ mode == 'edit' ? 'Edit quest' : 'New quest' }} | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>{{ mode == 'edit' ? 'Edit quest' : 'New quest' }}</h2>
+    {% include 'partials/errors.twig' %}
+
+    <form method="post" action="{{ action }}" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+        <label for="title">Title</label>
+        <input type="text" id="title" name="title" value="{{ form.title }}" maxlength="100" required>
+
+        <label for="description">Description (optional)</label>
+        <textarea id="description" name="description" rows="4" maxlength="1000">{{ form.description }}</textarea>
+
+        <label for="category_id">Category</label>
+        <select id="category_id" name="category_id" required>
+            <option value="">Choose...</option>
+            {% for c in categories %}
+                <option value="{{ c.id }}" {% if form.category_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="difficulty">Difficulty</label>
+        <select id="difficulty" name="difficulty" required>
+            {% for key, xp in difficulties %}
+                <option value="{{ key }}" {% if form.difficulty == key %}selected{% endif %}>
+                    {{ key|capitalize }} (+{{ xp }} XP)
+                </option>
+            {% endfor %}
+        </select>
+
+        <label for="due_date">Due date (optional)</label>
+        <input type="date" id="due_date" name="due_date" value="{{ form.due_date }}">
+
+        <button type="submit" class="btn">{{ mode == 'edit' ? 'Save changes' : 'Create quest' }}</button>
+        <a class="btn btn-secondary" href="index.php?page=quests">Cancel</a>
+    </form>
+</div>
+{% endblock %}
