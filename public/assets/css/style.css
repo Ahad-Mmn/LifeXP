@@ -43,3 +43,8 @@ textarea, select, input[type=date] { width: 100%; padding: .6rem; border-radius:
 .xp-text { font-size: .9rem; color: #cbd5e1; }
 .streak { font-size: 1.1rem; }
 .hint { color: #94a3b8; font-size: .9rem; }
+.filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: .8rem; background: #1e293b; padding: 1rem 1.2rem; border-radius: 10px; margin-bottom: 1rem; align-items: end; }
+.filter-wide { grid-column: 1 / -1; }
+.filters label { margin: 0 0 .3rem; }
+.filter-buttons { display: flex; gap: .5rem; align-items: center; }
+.result-count { color: #94a3b8; font-size: .9rem; margin: 0 0 .8rem; }

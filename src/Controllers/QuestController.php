@@ -22,12 +22,31 @@ final class QuestController
         $this->categories = new Category($pdo);
     }
 
-    /** READ: list my quests */
+    /** READ + SEARCH: list my quests, filtered by any combination of criteria */
     public function index(): void
     {
         Session::requireLogin();
-        $quests = $this->quests->allForUser((int) Session::userId());
-        echo $this->twig->render('pages/quests.twig', ['quests' => $quests]);
+
+        $filters = $this->cleanFilters($_GET);
+        $quests  = $this->quests->search((int) Session::userId(), $filters);
+
+        // Is the user filtering on anything? (sort alone doesn't count)
+        $active = array_filter([
+            $filters['q'], $filters['category_id'], $filters['difficulty'],
+            $filters['status'], $filters['due_from'], $filters['due_to'],
+        ]);
+
+        echo $this->twig->render('pages/quests.twig', [
+            'quests'       => $quests,
+            'filters'      => $filters,
+            'has_filters'  => count($active) > 0,
+            'categories'   => $this->categories->all(),
+            'difficulties' => array_keys(Quest::XP),
+            'sorts'        => [
+                'due' => 'Due date', 'newest' => 'Newest first',
+                'xp'  => 'Most XP',  'title'  => 'Title A-Z',
+            ],
+        ]);
     }
 
     /** CREATE */
@@ -189,6 +208,52 @@ final class QuestController
             'difficulty'  => $difficulty,
             'due_date'    => $due,
         ], $errors];
+    }
+
+    /** Input filtering for search: anything invalid is ignored, never trusted */
+    private function cleanFilters(array $get): array
+    {
+        $q = trim((string) ($get['q'] ?? ''));
+        $q = mb_substr($q, 0, 100);
+
+        $difficulty = (string) ($get['difficulty'] ?? '');
+        if (!array_key_exists($difficulty, Quest::XP)) {
+            $difficulty = '';
+        }
+
+        $status = (string) ($get['status'] ?? '');
+        if (!in_array($status, ['active', 'completed'], true)) {
+            $status = '';
+        }
+
+        $categoryId = (int) ($get['category'] ?? 0);
+        $validIds = array_map('intval', array_column($this->categories->all(), 'id'));
+        if (!in_array($categoryId, $validIds, true)) {
+            $categoryId = 0;
+        }
+
+        $sort = (string) ($get['sort'] ?? 'due');
+        if (!array_key_exists($sort, Quest::SORTS)) {
+            $sort = 'due';
+        }
+
+        return [
+            'q'           => $q,
+            'category_id' => $categoryId,
+            'difficulty'  => $difficulty,
+            'status'      => $status,
+            'due_from'    => $this->validDate((string) ($get['due_from'] ?? '')),
+            'due_to'      => $this->validDate((string) ($get['due_to'] ?? '')),
+            'sort'        => $sort,
+        ];
+    }
+
+    /** Returns the date if it is a real Y-m-d date, otherwise an empty string */
+    private function validDate(string $value): string
+    {
+        $value = trim($value);
+        $dt = \DateTime::createFromFormat('Y-m-d', $value);
+        return ($dt !== false && $dt->format('Y-m-d') === $value) ? $value : '';
     }
 
     /** Values to refill the form after a validation error */

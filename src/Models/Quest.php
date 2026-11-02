@@ -10,6 +10,14 @@ final class Quest
     /** Difficulty => XP reward. The server decides XP, never the browser. */
     public const XP = ['easy' => 10, 'medium' => 25, 'hard' => 50, 'epic' => 100];
 
+    /** Sort options: key => fixed SQL. ORDER BY can't use parameters, so we whitelist. */
+    public const SORTS = [
+        'due'    => 'q.status ASC, q.due_date IS NULL, q.due_date ASC, q.created_at DESC',
+        'newest' => 'q.created_at DESC',
+        'xp'     => 'q.xp_reward DESC, q.created_at DESC',
+        'title'  => 'q.title ASC',
+    ];
+
     public function __construct(private PDO $pdo)
     {
     }
@@ -25,6 +33,54 @@ final class Quest
              ORDER BY q.status ASC, q.due_date IS NULL, q.due_date ASC, q.created_at DESC'
         );
         $stmt->execute(['uid' => $userId]);
+        return $stmt->fetchAll();
+    }
+
+    /** SEARCH: any combination of filters, all applied together (AND) */
+    public function search(int $userId, array $f): array
+    {
+        $where  = ['q.user_id = :uid'];
+        $params = ['uid' => $userId];
+
+        if ($f['q'] !== '') {
+            // Escape LIKE wildcards so "%" and "_" are treated as normal characters.
+            // Two separate placeholders: real prepared statements can't reuse one name twice.
+            $like = '%' . addcslashes($f['q'], '\\%_') . '%';
+            $where[] = '(q.title LIKE :kw1 OR q.description LIKE :kw2)';
+            $params['kw1'] = $like;
+            $params['kw2'] = $like;
+        }
+        if ($f['category_id'] > 0) {
+            $where[] = 'q.category_id = :cat';
+            $params['cat'] = $f['category_id'];
+        }
+        if ($f['difficulty'] !== '') {
+            $where[] = 'q.difficulty = :diff';
+            $params['diff'] = $f['difficulty'];
+        }
+        if ($f['status'] !== '') {
+            $where[] = 'q.status = :status';
+            $params['status'] = $f['status'];
+        }
+        if ($f['due_from'] !== '') {
+            $where[] = 'q.due_date >= :dfrom';
+            $params['dfrom'] = $f['due_from'];
+        }
+        if ($f['due_to'] !== '') {
+            $where[] = 'q.due_date <= :dto';
+            $params['dto'] = $f['due_to'];
+        }
+
+        $orderBy = self::SORTS[$f['sort']] ?? self::SORTS['due'];   // whitelisted
+
+        $sql = 'SELECT q.*, c.name AS category_name, c.color AS category_color
+                FROM quests q
+                JOIN categories c ON c.id = q.category_id
+                WHERE ' . implode(' AND ', $where) . '
+                ORDER BY ' . $orderBy;
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetchAll();
     }
 
