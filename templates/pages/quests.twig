@@ -67,61 +67,11 @@
 
     <div class="filter-buttons">
         <button type="submit" class="btn btn-small">Search</button>
-        {% if has_filters %}
             <a class="btn btn-small btn-secondary" href="index.php?page=quests">Clear</a>
-        {% endif %}
     </div>
 </form>
 
 <div id="quest-results">
-    <p class="result-count">
-        {{ quests|length }} quest{{ quests|length == 1 ? '' : 's' }}{% if has_filters %} found{% endif %}
-    </p>
-
-    {% if quests is empty %}
-        <div class="card">
-            {% if has_filters %}
-                <p>No quests match those filters. Try removing one.</p>
-            {% else %}
-                <p>No quests yet. Create your first one and start earning XP!</p>
-            {% endif %}
-        </div>
-    {% else %}
-        <div class="quest-list">
-            {% for q in quests %}
-                <article class="quest {{ q.status == 'completed' ? 'quest-done' : '' }}"
-                         style="border-left-color: {{ q.category_color }};">
-                    <div class="quest-main">
-                        <h3>{{ q.title }}</h3>
-                        {% if q.description %}<p>{{ q.description }}</p>{% endif %}
-                        <p class="meta">
-                            <span class="tag" style="background: {{ q.category_color }};">{{ q.category_name }}</span>
-                            <span class="tag tag-{{ q.difficulty }}">{{ q.difficulty|capitalize }}</span>
-                            <strong>+{{ q.xp_reward }} XP</strong>
-                            {% if q.due_date %}&middot; Due {{ q.due_date|date('d M Y') }}{% endif %}
-                        </p>
-                    </div>
-                    <div class="quest-actions">
-                        {% if q.status == 'active' %}
-                            <form method="post" action="index.php?page=quest_complete" class="inline-form">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                                <input type="hidden" name="id" value="{{ q.id }}">
-                                <button type="submit" class="btn btn-small btn-success">Complete</button>
-                            </form>
-                            <a class="btn btn-small btn-secondary" href="index.php?page=quest_edit&amp;id={{ q.id }}">Edit</a>
-                        {% else %}
-                            <span class="tag tag-done">Completed</span>
-                        {% endif %}
-                        <form method="post" action="index.php?page=quest_delete" class="inline-form"
-                              data-confirm="Delete this quest?">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-                            <input type="hidden" name="id" value="{{ q.id }}">
-                            <button type="submit" class="btn btn-small btn-danger">Delete</button>
-                        </form>
-                    </div>
-                </article>
-            {% endfor %}
-        </div>
-    {% endif %}
+    {% include 'partials/quest_results.twig' %}
 </div>
 {% endblock %}

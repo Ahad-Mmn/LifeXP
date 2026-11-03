@@ -1,0 +1,25 @@
+{% extends "base.twig" %}
+
+{% block title %}Leaderboard | {{ app_name }}{% endblock %}
+
+{% block content %}
+<h2>Leaderboard</h2>
+<p class="hint">Top 10 heroes by total XP. Your rank: <strong>#{{ my_rank }}</strong></p>
+
+<table class="board">
+    <thead>
+        <tr><th>#</th><th>Hero</th><th>Title</th><th>Level</th><th>XP</th></tr>
+    </thead>
+    <tbody>
+        {% for r in rows %}
+            <tr class="{{ current_user and r.username == current_user.username ? 'me' : '' }}">
+                <td>{{ loop.index }}</td>
+                <td>{{ r.username }}</td>
+                <td>{{ r.title }}</td>
+                <td>{{ r.level }}</td>
+                <td>{{ r.total_xp }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

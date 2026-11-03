@@ -20,6 +20,8 @@ use LifeXP\Core\Csrf;
 use LifeXP\Core\Database;
 use LifeXP\Core\Session;
 use LifeXP\Controllers\QuestController;
+use LifeXP\Controllers\AjaxController;
+use LifeXP\Controllers\LeaderboardController;
 
 $config = require __DIR__ . '/../config/config.php';
 
@@ -44,10 +46,12 @@ $twig = new \Twig\Environment($loader, [
     'autoescape' => 'html',   // output escaping
     'debug'      => $config['app']['debug'],
 ]);
+
+$isAjax = ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'fetch';
 $twig->addGlobal('app_name', $config['app']['name']);
 $twig->addGlobal('current_user', Session::user());
 $twig->addGlobal('csrf_token', Csrf::token());
-$twig->addGlobal('flash', Session::pullFlash());
+$twig->addGlobal('flash', $isAjax ? [] : Session::pullFlash());
 
 try {
     $pdo = Database::connect($config['db']);
@@ -59,6 +63,8 @@ try {
 $page = (string) ($_GET['page'] ?? 'home');
 $auth = new AuthController($twig, $pdo);
 $questCtl = new QuestController($twig, $pdo);
+$ajax = new AjaxController($pdo);
+$leaderboard = new LeaderboardController($twig, $pdo);
 
 switch ($page) {
     case 'home':
@@ -91,6 +97,15 @@ switch ($page) {
         break;
     case 'quest_complete':
         $questCtl->complete();
+        break;
+    case 'ajax_username':
+        $ajax->usernameCheck();
+        break;
+    case 'ajax_complete':
+        $ajax->complete();
+        break;
+    case 'leaderboard':
+        $leaderboard->index();
         break;
     default:
         http_response_code(404);

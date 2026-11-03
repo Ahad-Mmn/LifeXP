@@ -12,7 +12,8 @@
 
         <label for="username">Username</label>
         <input type="text" id="username" name="username" value="{{ old.username }}"
-               maxlength="20" autocomplete="username" required>
+               maxlength="20" autocomplete="username" data-check-username required>
+        <span id="username-status" class="field-status" aria-live="polite"></span>
 
         <label for="email">Email</label>
         <input type="email" id="email" name="email" value="{{ old.email }}"

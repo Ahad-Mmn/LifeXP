@@ -10,14 +10,17 @@ use LifeXP\Services\Captcha;
 use PDO;
 use Twig\Environment;
 use LifeXP\Services\XpService;
+use LifeXP\Models\Stats;
 
 final class AuthController
 {
     private User $users;
+    private Stats $stats;
 
     public function __construct(private Environment $twig, PDO $pdo)
     {
         $this->users = new User($pdo);
+        $this->stats = new Stats($pdo);
     }
 
     public function register(): void
@@ -149,11 +152,19 @@ final class AuthController
             $this->redirect('login');
         }
 
+        $uid    = (int) $user['id'];
+        $badges = $this->stats->badgesForUser($uid);
+
         echo $this->twig->render('pages/dashboard.twig', [
-            'user'     => $user,
-            'progress' => XpService::progress((int) $user['total_xp']),
-            'streak'   => XpService::activeStreak((int) $user['current_streak'], $user['last_active_date']),
-]);
+            'user'         => $user,
+            'progress'     => XpService::progress((int) $user['total_xp']),
+            'streak'       => XpService::activeStreak((int) $user['current_streak'], $user['last_active_date']),
+            'week'         => $this->stats->xpPerDay($uid),
+            'cat'          => $this->stats->categoryBreakdown($uid),
+            'badges'       => $badges,
+            'earned_count' => count(array_filter($badges, fn ($b) => $b['earned_at'] !== null)),
+            'rank'         => $this->stats->rankOf($uid),
+        ]);
     }
 
     private function guestOnly(): void

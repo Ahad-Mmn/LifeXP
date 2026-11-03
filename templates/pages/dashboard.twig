@@ -3,26 +3,73 @@
 {% block title %}Dashboard | {{ app_name }}{% endblock %}
 
 {% block content %}
-<div class="card">
-    <h2>{{ user.username }}</h2>
-    <p class="hero-title">Level {{ progress.level }} &middot; {{ progress.title }}</p>
+<div class="dash-grid">
+    <section class="card dash-card">
+        <h2>{{ user.username }}</h2>
+        <p class="hero-title">Level {{ progress.level }} &middot; {{ progress.title }}</p>
 
-    <div class="xp-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ progress.percent }}">
-        <div class="xp-fill" style="width: {{ progress.percent }}%;"></div>
-    </div>
-    <p class="xp-text">
-        {{ progress.xp_in_level }} / {{ progress.xp_needed }} XP to level {{ progress.level + 1 }}
-        ({{ user.total_xp }} XP total)
-    </p>
+        <div class="xp-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ progress.percent }}">
+            <div class="xp-fill" style="width: {{ progress.percent }}%;"></div>
+        </div>
+        <p class="xp-text">
+            {{ progress.xp_in_level }} / {{ progress.xp_needed }} XP to level {{ progress.level + 1 }}
+            ({{ user.total_xp }} XP total)
+        </p>
 
-    <p class="streak">
-        &#128293; Streak: <strong>{{ streak }}</strong> day{{ streak == 1 ? '' : 's' }}
-        &middot; Best: {{ user.longest_streak }}
-    </p>
-    {% if streak == 0 %}
-        <p class="hint">Complete a quest today to start a streak!</p>
-    {% endif %}
+        <p class="streak">
+            &#128293; Streak: <strong>{{ streak }}</strong> day{{ streak == 1 ? '' : 's' }}
+            &middot; Best: {{ user.longest_streak }}
+        </p>
+        {% if streak == 0 %}
+            <p class="hint">Complete a quest today to start a streak!</p>
+        {% endif %}
 
-    <p><a class="btn" href="index.php?page=quests">View my quests</a></p>
+        <p>Leaderboard rank: <strong>#{{ rank }}</strong></p>
+        <p>
+            <a class="btn btn-small" href="index.php?page=quests">My quests</a>
+            <a class="btn btn-small btn-secondary" href="index.php?page=leaderboard">Leaderboard</a>
+        </p>
+    </section>
+
+    <section class="card dash-card">
+        <h3>XP this week</h3>
+        <p class="hint">{{ week.total }} XP in the last 7 days</p>
+        <div class="chart-box">
+            <canvas id="chart-week"
+                    data-labels="{{ week.labels|json_encode }}"
+                    data-values="{{ week.values|json_encode }}"></canvas>
+        </div>
+    </section>
+
+    <section class="card dash-card">
+        <h3>Quests by category</h3>
+        {% if cat.labels is empty %}
+            <p class="hint">Complete a quest to see your breakdown.</p>
+        {% else %}
+            <div class="chart-box">
+                <canvas id="chart-cat"
+                        data-labels="{{ cat.labels|json_encode }}"
+                        data-values="{{ cat.values|json_encode }}"
+                        data-colors="{{ cat.colors|json_encode }}"></canvas>
+            </div>
+        {% endif %}
+    </section>
 </div>
+
+<h3 class="section-title">Badges ({{ earned_count }} / {{ badges|length }})</h3>
+<div class="badge-grid">
+    {% for b in badges %}
+        <div class="badge {{ b.earned_at ? 'badge-earned' : 'badge-locked' }}">
+            <span class="badge-icon">&#{{ b.icon }};</span>
+            <strong>{{ b.name }}</strong>
+            <small>{{ b.description }}</small>
+            {% if b.earned_at %}<small class="badge-date">Unlocked {{ b.earned_at|date('d M Y') }}</small>{% endif %}
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="assets/js/chart.umd.min.js"></script>
+<script src="assets/js/charts.js"></script>
 {% endblock %}

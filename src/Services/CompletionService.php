@@ -84,7 +84,7 @@ final class CompletionService
                 'd'   => $today->format('Y-m-d'),
                 'id'  => $userId,
             ]);
-
+            $newBadges = BadgeService::award($this->pdo, $userId, $streak, $newLevel);
             $this->pdo->commit();
 
             return [
@@ -96,6 +96,7 @@ final class CompletionService
                 'leveled_up' => $newLevel > $oldLevel,
                 'new_level' => $newLevel,
                 'new_title' => XpService::title($newLevel),
+                'new_badges' => $newBadges,
             ];
         } catch (Throwable $e) {
             if ($this->pdo->inTransaction()) {

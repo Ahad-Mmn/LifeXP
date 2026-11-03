@@ -22,7 +22,7 @@ final class QuestController
         $this->categories = new Category($pdo);
     }
 
-    /** READ + SEARCH: list my quests, filtered by any combination of criteria */
+    /** READ + SEARCH: full page normally, just the results when called by Ajax */
     public function index(): void
     {
         Session::requireLogin();
@@ -30,13 +30,19 @@ final class QuestController
         $filters = $this->cleanFilters($_GET);
         $quests  = $this->quests->search((int) Session::userId(), $filters);
 
-        // Is the user filtering on anything? (sort alone doesn't count)
         $active = array_filter([
             $filters['q'], $filters['category_id'], $filters['difficulty'],
             $filters['status'], $filters['due_from'], $filters['due_to'],
         ]);
 
-        echo $this->twig->render('pages/quests.twig', [
+        $ajax = ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'fetch';
+        if ($ajax) {
+            // Same URL returns different content, so stop the browser caching the fragment
+            header('Vary: X-Requested-With');
+            header('Cache-Control: no-store');
+        }
+
+        echo $this->twig->render($ajax ? 'partials/quest_results.twig' : 'pages/quests.twig', [
             'quests'       => $quests,
             'filters'      => $filters,
             'has_filters'  => count($active) > 0,
@@ -152,6 +158,9 @@ final class QuestController
     if ($result['leveled_up']) {
         Session::flash('success', 'LEVEL UP! You are now level ' . $result['new_level']
             . ' - ' . $result['new_title'] . '!');
+    }
+    foreach ($result['new_badges'] as $badgeName) {
+        Session::flash('success', 'Badge unlocked: ' . $badgeName . '!');
     }
 
     $this->redirect('quests');

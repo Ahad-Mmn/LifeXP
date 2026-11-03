@@ -3,6 +3,7 @@
 	<head>
 		<meta charset="UTF-8">
 			<meta name="viewport" content="width=device-width, initial-scale=1">
+				<meta name="csrf-token" content="{{ csrf_token }}">
 				<title>{% block title %}{{ app_name }}{% endblock %}</title>
 				<link rel="stylesheet" href="assets/css/style.css">
 </head>
@@ -14,6 +15,7 @@
 				{% if current_user %}
 				<a href="index.php?page=dashboard">Dashboard</a>
 				<a href="index.php?page=quests">My Quests</a>
+				<a href="index.php?page=leaderboard">Leaderboard</a>
 				<span class="nav-user">{{ current_user.username }}</span>
 				<form method="post" action="index.php?page=logout" class="inline-form">
 					<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
@@ -36,5 +38,6 @@
 		</footer>
 
 		<script src="assets/js/app.js"></script>
+		{% block scripts %}{% endblock %}
 	</body>
 </html>
