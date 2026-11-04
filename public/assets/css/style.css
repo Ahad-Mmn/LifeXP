@@ -76,3 +76,18 @@ textarea, select, input[type=date] { width: 100%; padding: .6rem; border-radius:
 .board thead { background: #334155; }
 .board tbody tr:nth-child(even) { background: #172033; }
 .board tr.me { background: #3730a3 !important; font-weight: 700; }
+.stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; }
+.stat { background: #1e293b; border-radius: 10px; padding: 1rem; display: flex; flex-direction: column; }
+.stat strong { font-size: 1.8rem; color: #facc15; }
+.stat span { color: #94a3b8; font-size: .9rem; }
+.table-wrap { overflow-x: auto; }
+.row-actions { white-space: nowrap; }
+.row-actions form { margin-right: .3rem; }
+.strength { margin-top: .4rem; }
+.strength-track { background: #0f172a; border: 1px solid #475569; border-radius: 999px; height: 8px; overflow: hidden; }
+.strength-bar { height: 100%; width: 0; transition: width .3s, background .3s; }
+.strength-text { font-size: .85rem; color: #94a3b8; min-height: 1.1rem; display: block; }
+.strength[data-level="1"] .strength-bar { width: 25%; background: #ef4444; }
+.strength[data-level="2"] .strength-bar { width: 50%; background: #f59e0b; }
+.strength[data-level="3"] .strength-bar { width: 75%; background: #84cc16; }
+.strength[data-level="4"] .strength-bar { width: 100%; background: #22c55e; }

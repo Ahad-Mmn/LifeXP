@@ -51,4 +51,29 @@ final class User
         $stmt->execute(['u' => $username, 'e' => $email, 'p' => $passwordHash]);
         return (int) $this->pdo->lastInsertId();
     }
+
+        /** Admin list: every user plus how many quests they have */
+    public function listWithCounts(): array
+    {
+        return $this->pdo->query(
+            'SELECT u.id, u.username, u.email, u.role, u.level, u.total_xp, u.created_at,
+                    (SELECT COUNT(*) FROM quests q WHERE q.user_id = u.id) AS quest_count
+             FROM users u
+             ORDER BY u.created_at DESC, u.id DESC
+             LIMIT 200'
+        )->fetchAll();
+    }
+
+    public function setRole(int $id, string $role): void
+    {
+        $stmt = $this->pdo->prepare('UPDATE users SET role = :r WHERE id = :id');
+        $stmt->execute(['r' => $role, 'id' => $id]);
+    }
+
+    /** Quests, completions and badges are removed by the foreign keys (ON DELETE CASCADE) */
+    public function deleteUser(int $id): void
+    {
+        $stmt = $this->pdo->prepare('DELETE FROM users WHERE id = :id');
+        $stmt->execute(['id' => $id]);
+    }
 }

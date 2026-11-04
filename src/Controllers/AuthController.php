@@ -11,16 +11,20 @@ use PDO;
 use Twig\Environment;
 use LifeXP\Services\XpService;
 use LifeXP\Models\Stats;
+use LifeXP\Services\ActivityLog;
+use LifeXP\Services\RateLimiter;
 
 final class AuthController
 {
     private User $users;
     private Stats $stats;
+    private RateLimiter $limiter;
 
-    public function __construct(private Environment $twig, PDO $pdo)
+    public function __construct(private Environment $twig, private PDO $pdo)
     {
-        $this->users = new User($pdo);
-        $this->stats = new Stats($pdo);
+        $this->users   = new User($pdo);
+        $this->stats   = new Stats($pdo);
+        $this->limiter = new RateLimiter($pdo);
     }
 
     public function register(): void
@@ -98,6 +102,7 @@ final class AuthController
         $this->guestOnly();
         $errors = [];
         $old = ['username' => ''];
+        $ip = (string) ($_SERVER['REMOTE_ADDR'] ?? 'unknown');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $username = trim((string) ($_POST['username'] ?? ''));
@@ -107,6 +112,8 @@ final class AuthController
 
             if (!Csrf::verify($_POST['csrf_token'] ?? null)) {
                 $errors[] = 'Your session expired. Please try again.';
+            } elseif ($this->limiter->isLocked($ip, $username)) {
+                $errors[] = 'Too many failed attempts. Please wait 15 minutes and try again.';
             } elseif (!Captcha::verify($captcha)) {
                 $errors[] = 'Wrong answer to the maths question.';
             } else {
@@ -117,10 +124,15 @@ final class AuthController
                 $ok = password_verify($password, $hash) && $user !== null;
 
                 if ($ok) {
+                    $this->limiter->clear($ip, $username);
                     Session::login($user);
+                    ActivityLog::record($this->pdo, (int) $user['id'], 'login', '');
                     Session::flash('success', 'Welcome back, ' . $user['username'] . '!');
                     $this->redirect('dashboard');
                 }
+
+                $this->limiter->recordFailure($ip, $username);
+                ActivityLog::record($this->pdo, null, 'login_failed', $username);
                 // One generic message for both "no such user" and "wrong password"
                 $errors[] = 'Invalid username or password.';
             }

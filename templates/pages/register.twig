@@ -21,7 +21,11 @@
 
         <label for="password">Password (8+ characters, letters and numbers)</label>
         <input type="password" id="password" name="password" maxlength="72"
-               autocomplete="new-password" required>
+               autocomplete="new-password" data-strength required>
+        <div class="strength" id="strength" data-level="0" aria-live="polite">
+             <div class="strength-track"><div class="strength-bar"></div></div>
+             <span class="strength-text"></span>
+        </div>
 
         <label for="password_confirm">Confirm password</label>
         <input type="password" id="password_confirm" name="password_confirm" maxlength="72"

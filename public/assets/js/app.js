@@ -173,4 +173,27 @@
             }, 400);
         });
     }
+        // ---------- 5. Password strength meter (advisory only; the server enforces the rules) ----------
+    var pwInput = document.querySelector('[data-strength]');
+    var meter = document.getElementById('strength');
+    if (pwInput && meter) {
+        var labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+        var meterText = meter.querySelector('.strength-text');
+
+        pwInput.addEventListener('input', function () {
+            var p = pwInput.value;
+            var level = 0;
+            if (p.length > 0) {
+                var s = 0;
+                if (p.length >= 8) { s++; }
+                if (p.length >= 12) { s++; }
+                if (/[a-z]/.test(p) && /[A-Z]/.test(p)) { s++; }
+                if (/\d/.test(p)) { s++; }
+                if (/[^A-Za-z0-9]/.test(p)) { s++; }
+                level = s <= 1 ? 1 : (s === 2 ? 2 : (s === 3 ? 3 : 4));
+            }
+            meter.setAttribute('data-level', String(level));   // CSS draws the bar (no inline styles)
+            meterText.textContent = labels[level];
+        });
+    }
 })();

@@ -15,6 +15,7 @@ spl_autoload_register(function (string $class): void {
     }
 });
 
+use LifeXP\Controllers\AdminController;
 use LifeXP\Controllers\AuthController;
 use LifeXP\Core\Csrf;
 use LifeXP\Core\Database;
@@ -32,10 +33,17 @@ if ($config['app']['debug']) {
     ini_set('display_errors', '0');
 }
 
-// Basic security headers
+// Security headers
+header_remove('X-Powered-By');
 header('X-Frame-Options: DENY');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: strict-origin-when-cross-origin');
+header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'");
+header('Cache-Control: no-store');   // logged-in pages must not be cached
+if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+    header('Strict-Transport-Security: max-age=31536000');
+}
 
 Session::start();
 date_default_timezone_set('Europe/London');
@@ -65,6 +73,7 @@ $auth = new AuthController($twig, $pdo);
 $questCtl = new QuestController($twig, $pdo);
 $ajax = new AjaxController($pdo);
 $leaderboard = new LeaderboardController($twig, $pdo);
+$admin = new AdminController($twig, $pdo);
 
 switch ($page) {
     case 'home':
@@ -106,6 +115,15 @@ switch ($page) {
         break;
     case 'leaderboard':
         $leaderboard->index();
+        break;
+    case 'admin':
+        $admin->index();
+        break;
+    case 'admin_role':
+        $admin->setRole();
+        break;
+    case 'admin_delete':
+        $admin->deleteUser();
         break;
     default:
         http_response_code(404);

@@ -90,4 +90,14 @@ final class Stats
         $stmt->execute(['u' => $userId]);
         return (int) $stmt->fetchColumn();
     }
+
+        public function siteTotals(): array
+    {
+        return $this->pdo->query(
+            'SELECT (SELECT COUNT(*) FROM users) AS users,
+                    (SELECT COUNT(*) FROM quests) AS quests,
+                    (SELECT COUNT(*) FROM quest_completions) AS completions,
+                    (SELECT COALESCE(SUM(total_xp), 0) FROM users) AS xp'
+        )->fetch();
+    }
 }

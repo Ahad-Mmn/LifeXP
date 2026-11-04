@@ -1,0 +1,10 @@
+{% extends "base.twig" %}
+
+{% block title %}Forbidden | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Restricted area</h2>
+    <p>Only guild admins can enter here. <a href="index.php?page=dashboard">Back to your dashboard</a>.</p>
+</div>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends "base.twig" %}
+
+{% block title %}Admin | {{ app_name }}{% endblock %}
+
+{% block content %}
+<h2>Admin panel</h2>
+
+<div class="stat-grid">
+    <div class="stat"><strong>{{ totals.users }}</strong><span>Users</span></div>
+    <div class="stat"><strong>{{ totals.quests }}</strong><span>Quests</span></div>
+    <div class="stat"><strong>{{ totals.completions }}</strong><span>Completions</span></div>
+    <div class="stat"><strong>{{ totals.xp }}</strong><span>Total XP</span></div>
+</div>
+
+<h3 class="section-title">Users</h3>
+<div class="table-wrap">
+    <table class="board">
+        <thead>
+            <tr><th>User</th><th>Email</th><th>Role</th><th>Lvl</th><th>XP</th><th>Quests</th><th>Joined</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+                <tr>
+                    <td>{{ u.username }}{% if u.id == current_user.id %} <small>(you)</small>{% endif %}</td>
+                    <td>{{ u.email }}</td>
+                    <td><span class="tag {{ u.role == 'admin' ? 'tag-epic' : '' }}">{{ u.role }}</span></td>
+                    <td>{{ u.level }}</td>
+                    <td>{{ u.total_xp }}</td>
+                    <td>{{ u.quest_count }}</td>
+                    <td>{{ u.created_at|date('d M Y') }}</td>
+                    <td class="row-actions">
+                        {% if u.id != current_user.id %}
+                            <form method="post" action="index.php?page=admin_role" class="inline-form">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                <input type="hidden" name="id" value="{{ u.id }}">
+                                <input type="hidden" name="role" value="{{ u.role == 'admin' ? 'user' : 'admin' }}">
+                                <button type="submit" class="btn btn-small btn-secondary">
+                                    {{ u.role == 'admin' ? 'Make user' : 'Make admin' }}
+                                </button>
+                            </form>
+                            <form method="post" action="index.php?page=admin_delete" class="inline-form"
+                                  data-confirm="Delete this user and ALL their quests?">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                                <input type="hidden" name="id" value="{{ u.id }}">
+                                <button type="submit" class="btn btn-small btn-danger">Delete</button>
+                            </form>
+                        {% else %}
+                            <small>-</small>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<h3 class="section-title">Recent activity</h3>
+<div class="table-wrap">
+    <table class="board">
+        <thead><tr><th>When</th><th>User</th><th>Action</th><th>Detail</th><th>IP</th></tr></thead>
+        <tbody>
+            {% for l in log %}
+                <tr>
+                    <td>{{ l.created_at|date('d M H:i') }}</td>
+                    <td>{{ l.username ?? '-' }}</td>
+                    <td>{{ l.action }}</td>
+                    <td>{{ l.detail }}</td>
+                    <td>{{ l.ip }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="5">No activity yet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

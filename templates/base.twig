@@ -16,6 +16,9 @@
 				<a href="index.php?page=dashboard">Dashboard</a>
 				<a href="index.php?page=quests">My Quests</a>
 				<a href="index.php?page=leaderboard">Leaderboard</a>
+				{% if current_user and current_user.role == 'admin' %}
+				<a href="index.php?page=admin">Admin</a>
+				{% endif %}
 				<span class="nav-user">{{ current_user.username }}</span>
 				<form method="post" action="index.php?page=logout" class="inline-form">
 					<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
