@@ -56,6 +56,7 @@ $twig = new \Twig\Environment($loader, [
 ]);
 
 $isAjax = ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'fetch';
+$twig->addGlobal('current_page', (string) ($_GET['page'] ?? 'home'));
 $twig->addGlobal('app_name', $config['app']['name']);
 $twig->addGlobal('current_user', Session::user());
 $twig->addGlobal('csrf_token', Csrf::token());

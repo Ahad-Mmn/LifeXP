@@ -2,8 +2,9 @@
     'use strict';
     if (typeof Chart === 'undefined') { return; }   // library failed to load: page still works
 
-    Chart.defaults.color = '#cbd5e1';
-    Chart.defaults.borderColor = '#334155';
+    var css = getComputedStyle(document.documentElement);
+    Chart.defaults.color = css.getPropertyValue('--muted').trim();
+    Chart.defaults.borderColor = css.getPropertyValue('--line').trim();
 
     function read(el, key) {
         try { return JSON.parse(el.dataset[key]); } catch (e) { return []; }
@@ -40,7 +41,7 @@
                 datasets: [{
                     data: read(cat, 'values'),
                     backgroundColor: read(cat, 'colors'),
-                    borderColor: '#1e293b'
+                    borderColor: css.getPropertyValue('--surface').trim()
                 }]
             },
             options: {
