@@ -25,7 +25,7 @@ final class CompletionService
         try {
             // FOR UPDATE locks the row, so a double-click or two tabs can't award XP twice
             $stmt = $this->pdo->prepare(
-                "SELECT id, title, xp_reward, category_id, difficulty FROM quests
+                "SELECT id, title, xp_reward, category_id, difficulty, quest_type FROM quests
                  WHERE id = :id AND user_id = :uid AND status = 'active' FOR UPDATE"
             );
             $stmt->execute(['id' => $questId, 'uid' => $userId]);
@@ -69,14 +69,15 @@ final class CompletionService
                 ->execute(['id' => $questId]);
 
             $this->pdo->prepare(
-                'INSERT INTO quest_completions (quest_id, user_id, xp_earned, category_id, difficulty)
-                 VALUES (:q, :u, :xp, :cat, :diff)'
+                'INSERT INTO quest_completions (quest_id, user_id, xp_earned, category_id, difficulty, quest_type)
+                 VALUES (:q, :u, :xp, :cat, :diff, :type)'
             )->execute([
                 'q'    => $questId,
                 'u'    => $userId,
                 'xp'   => $earned,
                 'cat'  => $quest['category_id'],
                 'diff' => $quest['difficulty'],
+                'type' => $quest['quest_type'],
             ]);
 
             $this->pdo->prepare(

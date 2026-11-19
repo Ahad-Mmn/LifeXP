@@ -10,6 +10,8 @@ final class Quest
     /** Difficulty => XP reward. The server decides XP, never the browser. */
     public const XP = ['easy' => 10, 'medium' => 25, 'hard' => 50, 'epic' => 100];
 
+    public const TYPES = ['main', 'side', 'bonus', 'custom'];
+
     /** Sort options: key => fixed SQL. ORDER BY can't use parameters, so we whitelist. */
     public const SORTS = [
         'due'    => 'q.status ASC, q.due_date IS NULL, q.due_date ASC, q.created_at DESC',
