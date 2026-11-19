@@ -37,14 +37,13 @@ final class Stats
         return ['labels' => $labels, 'values' => $values, 'total' => array_sum($values)];
     }
 
-    /** Completed quests per category */
+    /** Completed quests per category (uses the snapshot, so deleted quests still count) */
     public function categoryBreakdown(int $userId): array
     {
         $stmt = $this->pdo->prepare(
             'SELECT c.name, c.color, COUNT(*) AS n
              FROM quest_completions qc
-             JOIN quests q     ON q.id = qc.quest_id
-             JOIN categories c ON c.id = q.category_id
+             JOIN categories c ON c.id = qc.category_id
              WHERE qc.user_id = :u
              GROUP BY c.id, c.name, c.color
              ORDER BY n DESC'

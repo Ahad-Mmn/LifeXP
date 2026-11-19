@@ -25,7 +25,7 @@ final class CompletionService
         try {
             // FOR UPDATE locks the row, so a double-click or two tabs can't award XP twice
             $stmt = $this->pdo->prepare(
-                "SELECT id, title, xp_reward FROM quests
+                "SELECT id, title, xp_reward, category_id, difficulty FROM quests
                  WHERE id = :id AND user_id = :uid AND status = 'active' FOR UPDATE"
             );
             $stmt->execute(['id' => $questId, 'uid' => $userId]);
@@ -47,11 +47,11 @@ final class CompletionService
             $last   = $user['last_active_date'];
             $streak = (int) $user['current_streak'];
             if ($last === $today->format('Y-m-d')) {
-                $streak = max($streak, 1);                    // already active today
+                $streak = max($streak, 1);
             } elseif ($last === $today->modify('-1 day')->format('Y-m-d')) {
-                $streak++;                                    // continued from yesterday
+                $streak++;
             } else {
-                $streak = 1;                                  // new or broken streak
+                $streak = 1;
             }
             $longest = max((int) $user['longest_streak'], $streak);
 
@@ -69,8 +69,20 @@ final class CompletionService
                 ->execute(['id' => $questId]);
 
             $this->pdo->prepare(
-                'INSERT INTO quest_completions (quest_id, user_id, xp_earned) VALUES (:q, :u, :xp)'
-            )->execute(['q' => $questId, 'u' => $userId, 'xp' => $earned]);
+                'INSERT INTO quest_completions (quest_id, user_id, xp_earned, category_id, difficulty)
+                 VALUES (:q, :u, :xp, :cat, :diff)'
+            )->execute([
+                'q'    => $questId,
+                'u'    => $userId,
+                'xp'   => $earned,
+                'cat'  => $quest['category_id'],
+                'diff' => $quest['difficulty'],
+            ]);
+
+            $this->pdo->prepare(
+                'INSERT INTO xp_ledger (user_id, delta, reason, quest_id)
+                 VALUES (:u, :d, :r, :q)'
+            )->execute(['u' => $userId, 'd' => $earned, 'r' => 'quest_complete', 'q' => $questId]);
 
             $this->pdo->prepare(
                 'UPDATE users SET total_xp = :xp, level = :lvl, current_streak = :cs,
@@ -84,18 +96,20 @@ final class CompletionService
                 'd'   => $today->format('Y-m-d'),
                 'id'  => $userId,
             ]);
+
             $newBadges = BadgeService::award($this->pdo, $userId, $streak, $newLevel);
+
             $this->pdo->commit();
 
             return [
-                'title'     => $quest['title'],
-                'base_xp'   => $base,
-                'earned'    => $earned,
-                'bonus_pct' => $bonusPct,
-                'streak'    => $streak,
+                'title'      => $quest['title'],
+                'base_xp'    => $base,
+                'earned'     => $earned,
+                'bonus_pct'  => $bonusPct,
+                'streak'     => $streak,
                 'leveled_up' => $newLevel > $oldLevel,
-                'new_level' => $newLevel,
-                'new_title' => XpService::title($newLevel),
+                'new_level'  => $newLevel,
+                'new_title'  => XpService::title($newLevel),
                 'new_badges' => $newBadges,
             ];
         } catch (Throwable $e) {

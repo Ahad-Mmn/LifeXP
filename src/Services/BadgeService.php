@@ -16,10 +16,9 @@ final class BadgeService
     {
         $stmt = $pdo->prepare(
             "SELECT COUNT(*) AS total,
-                    COUNT(DISTINCT q.category_id) AS cats,
-                    SUM(q.difficulty = 'epic') AS epics
+                    COUNT(DISTINCT qc.category_id) AS cats,
+                    SUM(qc.difficulty = 'epic') AS epics
              FROM quest_completions qc
-             JOIN quests q ON q.id = qc.quest_id
              WHERE qc.user_id = :u"
         );
         $stmt->execute(['u' => $userId]);
