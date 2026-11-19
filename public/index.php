@@ -126,6 +126,10 @@ switch ($page) {
     case 'admin_delete':
         $admin->deleteUser();
         break;
+    case 'forum':
+        $categories = $pdo->query('SELECT id, name FROM categories ORDER BY name')->fetchAll();
+        echo $twig->render('pages/forum.twig', ['categories' => $categories]);
+        break;
     default:
         http_response_code(404);
         echo $twig->render('pages/404.twig');

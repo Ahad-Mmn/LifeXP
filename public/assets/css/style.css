@@ -167,3 +167,8 @@ ul.alert { padding-left: 2rem; }
 .strength[data-level="2"] .strength-bar { width: 50%; background: var(--orange); }
 .strength[data-level="3"] .strength-bar { width: 75%; background: var(--lime-dark); }
 .strength[data-level="4"] .strength-bar { width: 100%; background: var(--success); }
+
+/* ---------- Forum ---------- */
+.soon-card { max-width: 640px; text-align: center; }
+.soon-list { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; }
+.soon-list li { background: var(--surface-2); border: 2px dashed var(--line); border-radius: 999px; padding: .3rem .9rem; font-size: .9rem; color: var(--muted); }

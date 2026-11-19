@@ -14,6 +14,7 @@
 
 			<nav aria-label="Main">
 				<a href="index.php?page=home" class="{{ current_page == 'home' ? 'on' : '' }}">Home</a>
+				<a href="index.php?page=forum" class="{{ current_page == 'forum' ? 'on' : '' }}">Forum</a>
 				{% if current_user %}
 				<a href="index.php?page=dashboard" class="{{ current_page == 'dashboard' ? 'on' : '' }}">Dashboard</a>
 				<a href="index.php?page=quests" class="{{ current_page starts with 'quest' ? 'on' : '' }}">My Quests</a>

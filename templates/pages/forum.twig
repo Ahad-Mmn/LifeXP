@@ -1,0 +1,22 @@
+{% extends "base.twig" %}
+
+{% block title %}Forum | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="card soon-card">
+    <span class="tag tag-epic">In development</span>
+    <h2>The LifeXP forum</h2>
+    <p>A place for players to share wins, ask for advice and cheer each other on. It's being built, so there is nothing to read yet.</p>
+
+    <h3>Planned boards</h3>
+    <ul class="soon-list">
+        {% for c in categories %}
+            <li>{{ c.name }}</li>
+        {% endfor %}
+        <li>Introductions</li>
+        <li>Wins and milestones</li>
+        <li>Feedback</li>
+    </ul>
+    <p class="hint">Check back soon.</p>
+</div>
+{% endblock %}
