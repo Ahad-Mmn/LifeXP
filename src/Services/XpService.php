@@ -64,4 +64,27 @@ final class XpService
 
         return ($lastActive === $today || $lastActive === $yesterday) ? $streak : 0;
     }
+
+        /** XP by difficulty and time limit, keyed by days */
+    private const TIME_XP = [
+        'easy'   => [1 => 10, 2 => 15, 3 => 20, 7 => 30,  14 => 45,  21 => 55,  30 => 70],
+        'medium' => [1 => 20, 2 => 30, 3 => 35, 7 => 60,  14 => 90,  21 => 110, 30 => 140],
+        'hard'   => [1 => 35, 2 => 50, 3 => 65, 7 => 105, 14 => 160, 21 => 195, 30 => 245],
+        'epic'   => [1 => 50, 2 => 70, 3 => 90, 7 => 150, 14 => 225, 21 => 275, 30 => 350],
+    ];
+
+    /** Reward for a quest, from its difficulty and time limit in hours */
+    public static function questXp(string $difficulty, int $hours): int
+    {
+        $table = self::TIME_XP[$difficulty] ?? self::TIME_XP['easy'];
+        $days  = max(1, (int) ceil($hours / 24));
+        $xp    = reset($table);
+
+        foreach ($table as $limit => $value) {
+            if ($days >= $limit) {
+                $xp = $value;
+            }
+        }
+        return $xp;
+    }
 }

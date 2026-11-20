@@ -1,0 +1,9 @@
+ALTER TABLE quest_templates
+    ADD COLUMN summary VARCHAR(120) NOT NULL DEFAULT '' AFTER title,
+    ADD COLUMN time_limit_hours SMALLINT UNSIGNED NOT NULL DEFAULT 24 AFTER difficulty,
+    MODIFY COLUMN description TEXT NOT NULL;
+
+ALTER TABLE quests
+    ADD COLUMN summary VARCHAR(120) NULL AFTER title,
+    ADD COLUMN why VARCHAR(255) NULL AFTER description,
+    ADD COLUMN expires_at DATETIME NULL AFTER due_date;
