@@ -1,0 +1,29 @@
+{% extends "base.twig" %}
+
+{% block title %}Profile | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="profile-head">
+    <span class="avatar avatar-lg">{{ user.username|first|upper }}</span>
+    <div>
+        <h2>{{ user.username }}</h2>
+        <p class="hint">Level {{ progress.level }} &middot; {{ progress.title }}</p>
+    </div>
+</div>
+
+<nav class="tabs" aria-label="Profile sections">
+    {% for key, label in tabs %}
+        <a href="index.php?page=profile&amp;tab={{ key }}"
+           class="{{ key == tab ? 'on' : '' }}"
+           {% if key == tab %}aria-current="page"{% endif %}>{{ label }}</a>
+    {% endfor %}
+</nav>
+
+<section class="profile-panel">
+    {% include 'partials/profile_' ~ tab ~ '.twig' %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+{% if tab == 'interests' %}<script src="assets/js/onboarding.js"></script>{% endif %}
+{% endblock %}

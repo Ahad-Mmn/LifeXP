@@ -14,8 +14,8 @@ final class User
     public function findById(int $id): ?array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT id, username, email, total_xp, level, role, created_at,
-             current_streak, longest_streak, last_active_date
+            'SELECT id, username, email, bio, total_xp, level, role, created_at,
+                    current_streak, longest_streak, last_active_date
              FROM users WHERE id = :id'
         );
         $stmt->execute(['id' => $id]);
@@ -75,5 +75,11 @@ final class User
     {
         $stmt = $this->pdo->prepare('DELETE FROM users WHERE id = :id');
         $stmt->execute(['id' => $id]);
+    }
+
+    public function updateBio(int $id, ?string $bio): void
+    {
+        $stmt = $this->pdo->prepare('UPDATE users SET bio = :bio WHERE id = :id');
+        $stmt->execute(['bio' => $bio, 'id' => $id]);
     }
 }

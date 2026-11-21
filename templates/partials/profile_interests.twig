@@ -1,0 +1,51 @@
+<div class="card wide-card profile-card">
+    <h3>Your categories</h3>
+    <p class="hint">Choose at least {{ min }}. New quests only come from these.</p>
+
+    <form method="post" action="index.php?page=profile_categories" data-onboarding data-min="{{ min }}" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+        <div class="pick-grid">
+            {% for c in categories %}
+                <label class="pick">
+                    <input type="checkbox" name="categories[]" value="{{ c.id }}" {% if c.id in chosen %}checked{% endif %}>
+                    <span class="pick-dot" data-accent="{{ c.color }}">{{ c.name|first|upper }}</span>
+                    <span class="pick-name">{{ c.name }}</span>
+                </label>
+            {% endfor %}
+        </div>
+
+        <p class="hint"><span id="pick-count">{{ chosen|length }}</span> selected</p>
+        <button type="submit" class="btn" data-submit>Save categories</button>
+    </form>
+</div>
+
+<div class="card wide-card profile-card">
+    <h3>Your favourite quests</h3>
+    <p class="hint">Tick the kinds of quests you enjoy. This helps us choose better ones for you. Save your categories first if you changed them.</p>
+
+    <form method="post" action="index.php?page=profile_samples" data-onboarding data-min="0" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+        {% for g in groups %}
+            <section class="sample-group">
+                <h3>
+                    <span class="pick-dot" data-accent="{{ g.category.color }}">{{ g.category.name|first|upper }}</span>
+                    {{ g.category.name }}
+                </h3>
+                {% for s in g.samples %}
+                    <label class="pick pick-wide">
+                        <input type="checkbox" name="templates[]" value="{{ s.id }}" {% if s.id in picked %}checked{% endif %}>
+                        <span class="pick-text">
+                            <strong>{{ s.title }}</strong>
+                            <small>{{ s.summary }}</small>
+                        </span>
+                        <span class="tag">{{ s.track|capitalize }}</span>
+                    </label>
+                {% endfor %}
+            </section>
+        {% endfor %}
+
+        <button type="submit" class="btn btn-success">Save favourites</button>
+    </form>
+</div>

@@ -172,3 +172,31 @@ ul.alert { padding-left: 2rem; }
 .soon-card { max-width: 640px; text-align: center; }
 .soon-list { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem; justify-content: center; }
 .soon-list li { background: var(--surface-2); border: 2px dashed var(--line); border-radius: 999px; padding: .3rem .9rem; font-size: .9rem; color: var(--muted); }
+.wide-card { max-width: 760px; }
+.step-label { margin: 0; font-size: .85rem; font-weight: 700; color: var(--violet); }
+.pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: .7rem; margin: 1rem 0; }
+.pick { position: relative; display: flex; align-items: center; gap: .7rem; margin: 0; padding: .7rem .9rem; background: var(--surface-2); border: 2px solid var(--line); border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; color: var(--ink); transition: transform .15s, border-color .2s, background .2s; }
+.pick:hover { transform: translateY(-2px); }
+.pick input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.pick:focus-within { outline: 3px solid var(--cyan); outline-offset: 2px; }
+.pick.selected { border-color: var(--violet); background: var(--surface); }
+.pick-dot { flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--muted); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; }
+.pick-name { flex: 1; }
+.pick-wide { margin-bottom: .6rem; }
+.pick-text { flex: 1; display: flex; flex-direction: column; gap: .1rem; }
+.pick-text small { color: var(--muted); font-weight: 400; }
+.sample-group h3 { display: flex; align-items: center; gap: .6rem; margin: 1.4rem 0 .6rem; }
+.form-actions { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+.btn:disabled { opacity: .5; cursor: not-allowed; transform: none; filter: none; }
+.profile-head { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.profile-head h2 { margin: 0; }
+.profile-head .hint { margin: 0; }
+.avatar-lg { width: 64px; height: 64px; font-size: 1.6rem; }
+.tabs { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: 1.2rem; background: var(--surface); padding: .35rem; border-radius: 999px; }
+.tabs a { flex: 1; text-align: center; padding: .5rem 1rem; border-radius: 999px; text-decoration: none; color: var(--muted); font-weight: 600; transition: background .2s, color .2s; }
+.tabs a:hover { background: var(--surface-2); color: var(--ink); }
+.tabs a.on { background: var(--violet); color: #fff; }
+.profile-card { margin: 1rem auto 0; max-width: none; }
+.bio { white-space: pre-line; }
+.site-header nav a.nav-user { background: rgba(255,255,255,.1); color: #fff; }
+.site-header nav a.nav-user.on { background: var(--violet); }

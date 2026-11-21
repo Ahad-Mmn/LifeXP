@@ -99,4 +99,10 @@ final class Stats
                     (SELECT COALESCE(SUM(total_xp), 0) FROM users) AS xp'
         )->fetch();
     }
+    public function completedCount(int $userId): int
+    {
+        $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM quest_completions WHERE user_id = :u');
+        $stmt->execute(['u' => $userId]);
+        return (int) $stmt->fetchColumn();
+    }
 }

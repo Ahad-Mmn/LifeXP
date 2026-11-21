@@ -156,26 +156,23 @@ final class AuthController
 
     public function dashboard(): void
     {
-        Session::requireLogin();   // protected page
+        Session::requireLogin();
 
         $user = $this->users->findById((int) Session::userId());
-        if ($user === null) {      // account was deleted while logged in
+        if ($user === null) {
             Session::logout();
             $this->redirect('login');
         }
 
-        $uid    = (int) $user['id'];
-        $badges = $this->stats->badgesForUser($uid);
+        $uid = (int) $user['id'];
 
         echo $this->twig->render('pages/dashboard.twig', [
-            'user'         => $user,
-            'progress'     => XpService::progress((int) $user['total_xp']),
-            'streak'       => XpService::activeStreak((int) $user['current_streak'], $user['last_active_date']),
-            'week'         => $this->stats->xpPerDay($uid),
-            'cat'          => $this->stats->categoryBreakdown($uid),
-            'badges'       => $badges,
-            'earned_count' => count(array_filter($badges, fn ($b) => $b['earned_at'] !== null)),
-            'rank'         => $this->stats->rankOf($uid),
+            'user'     => $user,
+            'progress' => XpService::progress((int) $user['total_xp']),
+            'streak'   => XpService::activeStreak((int) $user['current_streak'], $user['last_active_date']),
+            'week'     => $this->stats->xpPerDay($uid),
+            'cat'      => $this->stats->categoryBreakdown($uid),
+            'rank'     => $this->stats->rankOf($uid),
         ]);
     }
 

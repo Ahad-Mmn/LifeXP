@@ -25,9 +25,9 @@
 				{% endif %}
 				<span class="nav-spacer"></span>
 				{% if current_user %}
-				<span class="nav-user">
-					<span class="avatar">{{ current_user.username|first|upper }}</span>{{ current_user.username }}
-				</span>
+				<a class="nav-user {{ current_page starts with 'profile' ? 'on' : '' }}" href="index.php?page=profile">
+				<span class="avatar">{{ current_user.username|first|upper }}</span>{{ current_user.username }}
+				</a>
 				<form method="post" action="index.php?page=logout" class="inline-form">
 					<input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 						<button type="submit" class="btn-link">Log out</button>

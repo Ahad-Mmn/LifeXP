@@ -23,6 +23,8 @@ use LifeXP\Core\Session;
 use LifeXP\Controllers\QuestController;
 use LifeXP\Controllers\AjaxController;
 use LifeXP\Controllers\LeaderboardController;
+use LifeXP\Controllers\OnboardingController;
+use LifeXP\Controllers\ProfileController;
 
 $config = require __DIR__ . '/../config/config.php';
 
@@ -70,11 +72,18 @@ try {
 }
 
 $page = (string) ($_GET['page'] ?? 'home');
+$openPages = ['home', 'forum', 'logout', 'onboarding', 'onboarding_samples'];
+if (Session::userId() !== null && !Session::isOnboarded() && !in_array($page, $openPages, true)) {
+    header('Location: index.php?page=onboarding');
+    exit;
+}
 $auth = new AuthController($twig, $pdo);
 $questCtl = new QuestController($twig, $pdo);
 $ajax = new AjaxController($pdo);
 $leaderboard = new LeaderboardController($twig, $pdo);
 $admin = new AdminController($twig, $pdo);
+$onboarding = new OnboardingController($twig, $pdo);
+$profile = new ProfileController($twig, $pdo);
 
 switch ($page) {
     case 'home':
@@ -129,6 +138,24 @@ switch ($page) {
     case 'forum':
         $categories = $pdo->query('SELECT id, name FROM categories ORDER BY name')->fetchAll();
         echo $twig->render('pages/forum.twig', ['categories' => $categories]);
+        break;
+    case 'onboarding':
+        $onboarding->categories();
+        break;
+    case 'onboarding_samples':
+        $onboarding->samples();
+        break;
+    case 'profile':
+        $profile->show();
+        break;
+    case 'profile_bio':
+        $profile->saveBio();
+        break;
+    case 'profile_categories':
+        $profile->saveCategories();
+        break;
+    case 'profile_samples':
+        $profile->saveSamples();
         break;
     default:
         http_response_code(404);

@@ -1,0 +1,44 @@
+{% extends "base.twig" %}
+
+{% block title %}Pick your favourites | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="card wide-card">
+    <p class="step-label">Step 2 of 2</p>
+    <h2>Which of these sound like you?</h2>
+    <p class="hint">Tick the quests you would enjoy. This helps us choose better ones for you. You can leave everything unticked.</p>
+    {% include 'partials/errors.twig' %}
+
+    <form method="post" action="index.php?page=onboarding_samples" data-onboarding data-min="0" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+        {% for g in groups %}
+            <section class="sample-group">
+                <h3>
+                    <span class="pick-dot" data-accent="{{ g.category.color }}">{{ g.category.name|first|upper }}</span>
+                    {{ g.category.name }}
+                </h3>
+                {% for s in g.samples %}
+                    <label class="pick pick-wide">
+                        <input type="checkbox" name="templates[]" value="{{ s.id }}" {% if s.id in picked %}checked{% endif %}>
+                        <span class="pick-text">
+                            <strong>{{ s.title }}</strong>
+                            <small>{{ s.summary }}</small>
+                        </span>
+                        <span class="tag">{{ s.track|capitalize }}</span>
+                    </label>
+                {% endfor %}
+            </section>
+        {% endfor %}
+
+        <div class="form-actions">
+            <a class="btn btn-secondary" href="index.php?page=onboarding">Back</a>
+            <button type="submit" class="btn btn-success">Finish</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="assets/js/onboarding.js"></script>
+{% endblock %}

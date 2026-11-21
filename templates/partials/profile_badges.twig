@@ -1,0 +1,11 @@
+<h3 class="section-title">Badges ({{ earned_count }} / {{ badges|length }})</h3>
+<div class="badge-grid">
+    {% for b in badges %}
+        <div class="badge {{ b.earned_at ? 'badge-earned' : 'badge-locked' }}">
+            <span class="badge-icon">&#{{ b.icon }};</span>
+            <strong>{{ b.name }}</strong>
+            <small>{{ b.description }}</small>
+            {% if b.earned_at %}<small class="badge-date">Unlocked {{ b.earned_at|date('d M Y') }}</small>{% endif %}
+        </div>
+    {% endfor %}
+</div>

@@ -9,7 +9,7 @@
         <p class="hero-title">Level {{ progress.level }} &middot; {{ progress.title }}</p>
 
         <div class="xp-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ progress.percent }}">
-            <div class="xp-fill" style="width: {{ progress.percent }}%;"></div>
+            <div class="xp-fill" data-width="{{ progress.percent }}"></div>
         </div>
         <p class="xp-text">
             {{ progress.xp_in_level }} / {{ progress.xp_needed }} XP to level {{ progress.level + 1 }}
@@ -27,7 +27,7 @@
         <p>Leaderboard rank: <strong>#{{ rank }}</strong></p>
         <p>
             <a class="btn btn-small" href="index.php?page=quests">My quests</a>
-            <a class="btn btn-small btn-secondary" href="index.php?page=leaderboard">Leaderboard</a>
+            <a class="btn btn-small btn-secondary" href="index.php?page=profile">My profile</a>
         </p>
     </section>
 
@@ -54,18 +54,6 @@
             </div>
         {% endif %}
     </section>
-</div>
-
-<h3 class="section-title">Badges ({{ earned_count }} / {{ badges|length }})</h3>
-<div class="badge-grid">
-    {% for b in badges %}
-        <div class="badge {{ b.earned_at ? 'badge-earned' : 'badge-locked' }}">
-            <span class="badge-icon">&#{{ b.icon }};</span>
-            <strong>{{ b.name }}</strong>
-            <small>{{ b.description }}</small>
-            {% if b.earned_at %}<small class="badge-date">Unlocked {{ b.earned_at|date('d M Y') }}</small>{% endif %}
-        </div>
-    {% endfor %}
 </div>
 {% endblock %}
 

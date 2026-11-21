@@ -1,0 +1,25 @@
+<div class="stat-grid">
+    <div class="stat"><strong>{{ user.total_xp }}</strong><span>Total XP</span></div>
+    <div class="stat"><strong>{{ streak }}</strong><span>Day streak</span></div>
+    <div class="stat"><strong>{{ user.longest_streak }}</strong><span>Best streak</span></div>
+    <div class="stat"><strong>{{ completed }}</strong><span>Quests completed</span></div>
+    <div class="stat"><strong>#{{ rank }}</strong><span>Leaderboard rank</span></div>
+    <div class="stat"><strong>{{ earned_count }} / {{ badge_total }}</strong><span>Badges</span></div>
+</div>
+
+<div class="card wide-card profile-card">
+    <h3>About you</h3>
+    {% if user.bio %}
+        <p class="bio">{{ user.bio }}</p>
+    {% else %}
+        <p class="hint">You have not written a bio yet.</p>
+    {% endif %}
+
+    <form method="post" action="index.php?page=profile_bio" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <label for="bio">Bio (plain text, up to {{ bio_max }} characters)</label>
+        <textarea id="bio" name="bio" rows="4" maxlength="{{ bio_max }}">{{ user.bio }}</textarea>
+        <button type="submit" class="btn">Save bio</button>
+    </form>
+    <p class="hint">Member since {{ user.created_at|date('d M Y') }}</p>
+</div>

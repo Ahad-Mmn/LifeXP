@@ -1,0 +1,33 @@
+{% extends "base.twig" %}
+
+{% block title %}Choose your interests | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="card wide-card">
+    <p class="step-label">Step 1 of 2</p>
+    <h2>What do you want to work on?</h2>
+    <p class="hint">Pick at least {{ min }} categories. Quests are only chosen from these, and you can change them later.</p>
+    {% include 'partials/errors.twig' %}
+
+    <form method="post" action="index.php?page=onboarding" data-onboarding data-min="{{ min }}" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+        <div class="pick-grid">
+            {% for c in categories %}
+                <label class="pick">
+                    <input type="checkbox" name="categories[]" value="{{ c.id }}" {% if c.id in chosen %}checked{% endif %}>
+                    <span class="pick-dot" data-accent="{{ c.color }}">{{ c.name|first|upper }}</span>
+                    <span class="pick-name">{{ c.name }}</span>
+                </label>
+            {% endfor %}
+        </div>
+
+        <p class="hint"><span id="pick-count">{{ chosen|length }}</span> selected</p>
+        <button type="submit" class="btn" data-submit>Continue</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="assets/js/onboarding.js"></script>
+{% endblock %}

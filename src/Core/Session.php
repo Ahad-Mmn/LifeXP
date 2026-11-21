@@ -14,20 +14,21 @@ final class Session
         session_set_cookie_params([
             'lifetime' => 0,
             'path'     => '/',
-            'secure'   => $secure,   // only sent over HTTPS when the site uses HTTPS
-            'httponly' => true,      // JavaScript cannot read the cookie (XSS defence)
-            'samesite' => 'Lax',     // helps against CSRF
+            'secure'   => $secure,
+            'httponly' => true,
+            'samesite' => 'Lax',
         ]);
         session_start();
     }
 
     public static function login(array $user): void
     {
-        session_regenerate_id(true);   // prevents session fixation
+        session_regenerate_id(true);
         $_SESSION['user'] = [
-            'id'       => (int) $user['id'],
-            'username' => (string) $user['username'],
-            'role'     => (string) $user['role'],
+            'id'        => (int) $user['id'],
+            'username'  => (string) $user['username'],
+            'role'      => (string) $user['role'],
+            'onboarded' => (int) ($user['onboarded'] ?? 0) === 1,
         ];
     }
 
@@ -45,6 +46,18 @@ final class Session
     public static function userId(): ?int
     {
         return isset($_SESSION['user']['id']) ? (int) $_SESSION['user']['id'] : null;
+    }
+
+    public static function isOnboarded(): bool
+    {
+        return !empty($_SESSION['user']['onboarded']);
+    }
+
+    public static function markOnboarded(): void
+    {
+        if (isset($_SESSION['user'])) {
+            $_SESSION['user']['onboarded'] = true;
+        }
     }
 
     /** Protects sensitive pages: call at the top of any page that needs a login. */
