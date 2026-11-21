@@ -73,24 +73,27 @@ final class Stats
 
     public function leaderboard(int $limit = 10): array
     {
-        $limit = max(1, min($limit, 50));   // integer, clamped, safe to put in the query
+        $limit = max(1, min($limit, 50));
         return $this->pdo->query(
-            'SELECT username, level, total_xp FROM users ORDER BY total_xp DESC, id ASC LIMIT ' . $limit
+            'SELECT username, level, total_xp FROM users
+             WHERE show_on_leaderboards = 1
+             ORDER BY total_xp DESC, id ASC LIMIT ' . $limit
         )->fetchAll();
     }
 
-    /** 1 = top player. Ties share the better rank. */
+    /** 1 = top player among players who appear on the board. Ties share the better rank. */
     public function rankOf(int $userId): int
     {
         $stmt = $this->pdo->prepare(
             'SELECT COUNT(*) + 1 FROM users
-             WHERE total_xp > (SELECT total_xp FROM users WHERE id = :u)'
+             WHERE show_on_leaderboards = 1
+               AND total_xp > (SELECT total_xp FROM users WHERE id = :u)'
         );
         $stmt->execute(['u' => $userId]);
         return (int) $stmt->fetchColumn();
     }
 
-        public function siteTotals(): array
+    public function siteTotals(): array
     {
         return $this->pdo->query(
             'SELECT (SELECT COUNT(*) FROM users) AS users,
@@ -99,6 +102,7 @@ final class Stats
                     (SELECT COALESCE(SUM(total_xp), 0) FROM users) AS xp'
         )->fetch();
     }
+
     public function completedCount(int $userId): int
     {
         $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM quest_completions WHERE user_id = :u');

@@ -33,4 +33,16 @@ final class ActivityLog
              ORDER BY a.id DESC LIMIT ' . $limit
         )->fetchAll();
     }
+
+        /** The latest events for one user, newest first */
+    public static function forUser(PDO $pdo, int $userId, int $limit = 15): array
+    {
+        $limit = max(1, min($limit, 100));
+        $stmt = $pdo->prepare(
+            'SELECT action, detail, ip, created_at FROM activity_log
+             WHERE user_id = :u ORDER BY id DESC LIMIT ' . $limit
+        );
+        $stmt->execute(['u' => $userId]);
+        return $stmt->fetchAll();
+    }
 }

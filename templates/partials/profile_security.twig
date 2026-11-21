@@ -1,0 +1,72 @@
+<div class="card wide-card profile-card">
+    <h3>Change password</h3>
+    <form method="post" action="index.php?page=profile_password" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+        <label for="current_password">Current password</label>
+        <input type="password" id="current_password" name="current_password" maxlength="72" autocomplete="current-password" required>
+
+        <label for="new_password">New password (8+ characters, letters and numbers)</label>
+        <input type="password" id="new_password" name="new_password" maxlength="72" autocomplete="new-password" required>
+
+        <label for="new_password_confirm">Confirm new password</label>
+        <input type="password" id="new_password_confirm" name="new_password_confirm" maxlength="72" autocomplete="new-password" required>
+
+        <button type="submit" class="btn">Change password</button>
+    </form>
+</div>
+
+<div class="card wide-card profile-card">
+    <h3>Change email</h3>
+    <p class="hint">Current email: {{ user.email }}</p>
+    <form method="post" action="index.php?page=profile_email" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+        <label for="email">New email address</label>
+        <input type="email" id="email" name="email" maxlength="255" autocomplete="email" required>
+
+        <label for="email_password">Current password</label>
+        <input type="password" id="email_password" name="current_password" maxlength="72" autocomplete="current-password" required>
+
+        <button type="submit" class="btn">Change email</button>
+    </form>
+</div>
+
+<div class="card wide-card profile-card">
+    <h3>Recent account activity</h3>
+    <p class="hint">Only you can see this. If something looks wrong, change your password.</p>
+    {% if history is empty %}
+        <p class="hint">Nothing recorded yet.</p>
+    {% else %}
+        <div class="table-wrap">
+            <table class="board">
+                <thead><tr><th>When</th><th>What</th><th>IP address</th></tr></thead>
+                <tbody>
+                    {% for h in history %}
+                        <tr>
+                            <td>{{ h.created_at|date('d M Y H:i') }}</td>
+                            <td>{{ h.label }}</td>
+                            <td>{{ h.ip }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>
+
+<div class="card wide-card profile-card danger-zone">
+    <h3>Delete account</h3>
+    <p>This permanently removes your account, quests, XP history and badges. It cannot be undone.</p>
+    <form method="post" action="index.php?page=profile_delete" data-confirm="Delete your account permanently?" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+        <label for="confirm_text">Type DELETE to confirm</label>
+        <input type="text" id="confirm_text" name="confirm_text" maxlength="10" autocomplete="off" required>
+
+        <label for="delete_password">Current password</label>
+        <input type="password" id="delete_password" name="current_password" maxlength="72" autocomplete="current-password" required>
+
+        <button type="submit" class="btn btn-danger">Delete my account</button>
+    </form>
+</div>

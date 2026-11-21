@@ -1,0 +1,17 @@
+<div class="card wide-card profile-card">
+    <h3>Your data</h3>
+    <p>Download a copy of everything LifeXP stores about you, as a JSON file. It includes:</p>
+    <ul>
+        <li>Your account details, bio and privacy settings</li>
+        <li>Your chosen interests</li>
+        <li>All your quests and completions</li>
+        <li>Your XP history and badges</li>
+        <li>Your recent account activity</li>
+    </ul>
+    <p class="hint">Your password is never included, and it is not stored in readable form anywhere.</p>
+
+    <form method="post" action="index.php?page=profile_export">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button type="submit" class="btn">Download my data</button>
+    </form>
+</div>

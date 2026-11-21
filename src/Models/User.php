@@ -15,7 +15,8 @@ final class User
     {
         $stmt = $this->pdo->prepare(
             'SELECT id, username, email, bio, total_xp, level, role, created_at,
-                    current_streak, longest_streak, last_active_date
+                    current_streak, longest_streak, last_active_date,
+                    profile_visibility, show_on_leaderboards, show_badges, show_activity
              FROM users WHERE id = :id'
         );
         $stmt->execute(['id' => $id]);
@@ -81,5 +82,45 @@ final class User
     {
         $stmt = $this->pdo->prepare('UPDATE users SET bio = :bio WHERE id = :id');
         $stmt->execute(['bio' => $bio, 'id' => $id]);
+    }
+        public function passwordHash(int $id): ?string
+    {
+        $stmt = $this->pdo->prepare('SELECT password_hash FROM users WHERE id = :id');
+        $stmt->execute(['id' => $id]);
+        $hash = $stmt->fetchColumn();
+        return $hash === false ? null : (string) $hash;
+    }
+
+    public function updatePassword(int $id, string $hash): void
+    {
+        $stmt = $this->pdo->prepare('UPDATE users SET password_hash = :h WHERE id = :id');
+        $stmt->execute(['h' => $hash, 'id' => $id]);
+    }
+
+    public function updateEmail(int $id, string $email): void
+    {
+        $stmt = $this->pdo->prepare('UPDATE users SET email = :e WHERE id = :id');
+        $stmt->execute(['e' => $email, 'id' => $id]);
+    }
+
+    public function updatePrivacy(int $id, string $visibility, bool $leaderboards, bool $badges, bool $activity): void
+    {
+        $stmt = $this->pdo->prepare(
+            'UPDATE users
+             SET profile_visibility = :v, show_on_leaderboards = :l, show_badges = :b, show_activity = :a
+             WHERE id = :id'
+        );
+        $stmt->execute([
+            'v'  => $visibility,
+            'l'  => $leaderboards ? 1 : 0,
+            'b'  => $badges ? 1 : 0,
+            'a'  => $activity ? 1 : 0,
+            'id' => $id,
+        ]);
+    }
+
+    public function countAdmins(): int
+    {
+        return (int) $this->pdo->query("SELECT COUNT(*) FROM users WHERE role = 'admin'")->fetchColumn();
     }
 }

@@ -200,3 +200,7 @@ ul.alert { padding-left: 2rem; }
 .bio { white-space: pre-line; }
 .site-header nav a.nav-user { background: rgba(255,255,255,.1); color: #fff; }
 .site-header nav a.nav-user.on { background: var(--violet); }
+.check { display: flex; align-items: center; gap: .6rem; margin: .9rem 0 0; color: var(--ink); font-weight: 500; cursor: pointer; }
+.check input { width: 18px; height: 18px; accent-color: var(--violet); }
+.danger-zone { border: 2px solid var(--danger); }
+.danger-zone h3 { color: var(--danger); }

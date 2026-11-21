@@ -157,6 +157,21 @@ switch ($page) {
     case 'profile_samples':
         $profile->saveSamples();
         break;
+    case 'profile_privacy':
+        $profile->savePrivacy();
+        break;
+    case 'profile_password':
+        $profile->changePassword();
+        break;
+    case 'profile_email':
+        $profile->changeEmail();
+        break;
+    case 'profile_delete':
+        $profile->deleteAccount();
+        break;
+    case 'profile_export':
+        $profile->export();
+        break;
     default:
         http_response_code(404);
         echo $twig->render('pages/404.twig');

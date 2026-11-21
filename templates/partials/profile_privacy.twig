@@ -1,0 +1,29 @@
+<div class="card wide-card profile-card">
+    <h3>Privacy</h3>
+    <p class="hint">Choose what other players can see. Your email address is never shown to anyone.</p>
+
+    <form method="post" action="index.php?page=profile_privacy" novalidate>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+        <label for="profile_visibility">Who can see your profile</label>
+        <select id="profile_visibility" name="profile_visibility">
+            <option value="public" {% if user.profile_visibility == 'public' %}selected{% endif %}>Everyone</option>
+            <option value="private" {% if user.profile_visibility == 'private' %}selected{% endif %}>Only me</option>
+        </select>
+
+        <label class="check">
+            <input type="checkbox" name="show_on_leaderboards" value="1" {% if user.show_on_leaderboards %}checked{% endif %}>
+            Show me on leaderboards
+        </label>
+        <label class="check">
+            <input type="checkbox" name="show_badges" value="1" {% if user.show_badges %}checked{% endif %}>
+            Show my badges on my profile
+        </label>
+        <label class="check">
+            <input type="checkbox" name="show_activity" value="1" {% if user.show_activity %}checked{% endif %}>
+            Show my recent activity on my profile
+        </label>
+
+        <button type="submit" class="btn">Save privacy settings</button>
+    </form>
+</div>
