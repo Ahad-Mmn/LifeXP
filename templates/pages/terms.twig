@@ -1,0 +1,58 @@
+{% extends "base.twig" %}
+
+{% block title %}Terms of Use | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="card wide-card legal">
+    <h2>Terms of Use</h2>
+    <p class="hint">Version {{ legal_version }}, last updated {{ legal_updated }}</p>
+
+    <h3>1. About {{ app_name }}</h3>
+    <p>{{ app_name }} is a student project: a game where you complete everyday quests to earn XP and level up. It is free, non-commercial and provided for learning and fun.</p>
+
+    <h3>2. Your account</h3>
+    <ul>
+        <li>You must be 13 or older to use {{ app_name }}.</li>
+        <li>Give accurate details and keep one account per person.</li>
+        <li>Keep your password private. You are responsible for what happens on your account.</li>
+        <li>Tell us if you think someone else has accessed your account.</li>
+    </ul>
+
+    <h3>3. How the game works</h3>
+    <ul>
+        <li>Quests are completed on trust. {{ app_name }} cannot check that you really did them, so XP is a record of your own effort.</li>
+        <li>Skipping or letting some quests expire can reduce your XP, and your level can go down with it.</li>
+        <li>We may change quests, XP values and rules at any time to keep the game fair and working.</li>
+        <li>XP, levels and badges have no cash value and cannot be sold or transferred.</li>
+    </ul>
+
+    <h3>4. Acceptable use</h3>
+    <p>Do not:</p>
+    <ul>
+        <li>exploit bugs, automate the site or use scripts to gain XP unfairly;</li>
+        <li>attack, overload or scan the site for weaknesses without written permission;</li>
+        <li>try to access other players' accounts or data;</li>
+        <li>break the <a href="index.php?page=community_rules">Community Rules</a>.</li>
+    </ul>
+
+    <h3>5. Your content</h3>
+    <p>Things you write, such as your bio and custom quests, stay yours. You allow {{ app_name }} to store and show them as the site works, according to your privacy settings.</p>
+
+    <h3>6. Availability</h3>
+    <p>{{ app_name }} is provided as it is, with no guarantee that it will always be available, error-free or keep your data forever. It may be changed or switched off at any time.</p>
+
+    <h3>7. Ending your use</h3>
+    <ul>
+        <li>You can delete your account at any time from <strong>Profile, then Security</strong>.</li>
+        <li>We may warn, suspend or remove accounts that break these terms or the Community Rules.</li>
+    </ul>
+
+    <h3>8. Changes to these terms</h3>
+    <p>If we change these terms, the version number and date above will change, and you may be asked to accept the new version.</p>
+
+    <h3>9. Contact</h3>
+    <p>Questions about these terms: [your contact email].</p>
+
+    {% include 'partials/legal_links.twig' %}
+</div>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends "base.twig" %}
+
+{% block title %}Privacy Policy | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="card wide-card legal">
+    <h2>Privacy Policy</h2>
+    <p class="hint">Version {{ legal_version }}, last updated {{ legal_updated }}</p>
+
+    <h3>1. What we store</h3>
+    <ul>
+        <li><strong>Account:</strong> your username, email address, and your password in scrambled (hashed) form. We cannot read your password.</li>
+        <li><strong>Profile:</strong> the bio you write, your privacy settings and the categories you are interested in.</li>
+        <li><strong>Game data:</strong> your quests, completions, XP history, level, streaks and badges.</li>
+        <li><strong>Security records:</strong> the time and IP address of logins, failed logins and changes to your account, and the time and IP address of recent failed sign-in attempts.</li>
+        <li><strong>Terms:</strong> which version of the terms you accepted and when.</li>
+    </ul>
+
+    <h3>2. Why we store it</h3>
+    <ul>
+        <li>To run your account and the game.</li>
+        <li>To show leaderboards.</li>
+        <li>To protect the site, for example by limiting repeated failed logins and spotting suspicious activity.</li>
+    </ul>
+
+    <h3>3. Who can see it</h3>
+    <ul>
+        <li><strong>Other players</strong> can see your username, level and XP on leaderboards, unless you turn that off in Profile, then Privacy. They never see your email address.</li>
+        <li><strong>Site administrators</strong> can see account details, including email addresses, and the security records, in order to run and protect the site.</li>
+        <li>We do not sell your data or share it with advertisers.</li>
+    </ul>
+
+    <h3>4. Cookies and browser storage</h3>
+    <ul>
+        <li>A <strong>session cookie</strong> keeps you logged in. It is essential, is deleted when you close your browser, and cannot be read by page scripts.</li>
+        <li>Your light or dark theme choice is saved in your browser's local storage.</li>
+        <li>We do not use analytics or advertising cookies, and we do not load third-party scripts.</li>
+        <li>Our hosting provider may keep ordinary server logs of requests.</li>
+    </ul>
+
+    <h3>5. How long we keep it</h3>
+    <ul>
+        <li>Account and game data is kept until you delete your account.</li>
+        <li>When you delete your account, your data is removed, and the IP addresses on your old security records are erased.</li>
+        <li>Records of failed sign-in attempts are removed automatically after about a day.</li>
+    </ul>
+
+    <h3>6. Your choices</h3>
+    <ul>
+        <li><strong>See and download</strong> your data: Profile, then Data.</li>
+        <li><strong>Change</strong> your email or password: Profile, then Security.</li>
+        <li><strong>Control</strong> what others see: Profile, then Privacy.</li>
+        <li><strong>Delete</strong> your account and data: Profile, then Security.</li>
+    </ul>
+
+    <h3>7. Keeping your data safe</h3>
+    <p>We take reasonable steps to protect your data, such as hashing passwords, checking requests for forgery and limiting repeated login attempts. No system is perfectly secure, so please choose a strong, unique password.</p>
+
+    <h3>8. Contact</h3>
+    <p>Questions about your data: [your contact email].</p>
+
+    {% include 'partials/legal_links.twig' %}
+</div>
+{% endblock %}

@@ -15,11 +15,12 @@ spl_autoload_register(function (string $class): void {
     }
 });
 
-use LifeXP\Controllers\AdminController;
-use LifeXP\Controllers\AuthController;
 use LifeXP\Core\Csrf;
 use LifeXP\Core\Database;
 use LifeXP\Core\Session;
+use LifeXP\Core\Legal;
+use LifeXP\Controllers\AdminController;
+use LifeXP\Controllers\AuthController;
 use LifeXP\Controllers\QuestController;
 use LifeXP\Controllers\AjaxController;
 use LifeXP\Controllers\LeaderboardController;
@@ -63,6 +64,8 @@ $twig->addGlobal('app_name', $config['app']['name']);
 $twig->addGlobal('current_user', Session::user());
 $twig->addGlobal('csrf_token', Csrf::token());
 $twig->addGlobal('flash', $isAjax ? [] : Session::pullFlash());
+$twig->addGlobal('legal_version', Legal::TERMS_VERSION);
+$twig->addGlobal('legal_updated', Legal::UPDATED);
 
 try {
     $pdo = Database::connect($config['db']);
@@ -72,7 +75,7 @@ try {
 }
 
 $page = (string) ($_GET['page'] ?? 'home');
-$openPages = ['home', 'forum', 'logout', 'onboarding', 'onboarding_samples'];
+$openPages = ['home', 'forum', 'logout', 'onboarding', 'onboarding_samples', 'terms', 'privacy_policy', 'community_rules'];     
 if (Session::userId() !== null && !Session::isOnboarded() && !in_array($page, $openPages, true)) {
     header('Location: index.php?page=onboarding');
     exit;
@@ -171,6 +174,18 @@ switch ($page) {
         break;
     case 'profile_export':
         $profile->export();
+        break;
+    case 'terms':
+        echo $twig->render('pages/terms.twig');
+        break;
+    case 'privacy_policy':
+        echo $twig->render('pages/privacy_policy.twig');
+        break;
+    case 'community_rules':
+        echo $twig->render('pages/community_rules.twig');
+        break;
+    case 'profile_terms':
+        $profile->acceptTerms();
         break;
     default:
         http_response_code(404);

@@ -34,6 +34,14 @@
         <label for="captcha">Are you human? What is {{ captcha_question }} ?</label>
         <input type="text" id="captcha" name="captcha" maxlength="4" autocomplete="off" required>
 
+        <label class="check">
+            <input type="checkbox" name="accept_terms" value="1" {% if old.accepted %}checked{% endif %} required>
+            <span>I agree to the
+                <a href="index.php?page=terms" target="_blank" rel="noopener">Terms of Use</a>,
+                <a href="index.php?page=privacy_policy" target="_blank" rel="noopener">Privacy Policy</a> and
+                <a href="index.php?page=community_rules" target="_blank" rel="noopener">Community Rules</a></span>
+        </label>
+
         <button type="submit" class="btn">Start my adventure</button>
     </form>
     <p>Already a hero? <a href="index.php?page=login">Log in</a></p>

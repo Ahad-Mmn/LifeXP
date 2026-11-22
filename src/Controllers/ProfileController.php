@@ -16,6 +16,7 @@ use LifeXP\Services\XpService;
 use PDO;
 use Throwable;
 use Twig\Environment;
+use LifeXP\Core\Legal;
 
 final class ProfileController
 {
@@ -26,6 +27,7 @@ final class ProfileController
         'privacy'   => 'Privacy',
         'security'  => 'Security',
         'data'      => 'Data',
+        'terms'     => 'Terms',
     ];
     private const HISTORY_LABELS = [
         'login'                 => 'Logged in',
@@ -33,6 +35,7 @@ final class ProfileController
         'email_changed'         => 'Email changed',
         'password_check_failed' => 'Wrong password entered',
         'data_exported'         => 'Data downloaded',
+        'terms_accepted'        => 'Accepted the terms',
     ];
     private const MIN_CATEGORIES = 3;
     private const BIO_MAX = 300;
@@ -346,6 +349,19 @@ final class ProfileController
         header('Content-Length: ' . strlen($json));
         echo $json;
         exit;
+    }
+
+    public function acceptTerms(): void
+    {
+        Session::requireLogin();
+        $this->requirePost('terms');
+
+        $userId = (int) Session::userId();
+        $this->users->acceptTerms($userId, Legal::TERMS_VERSION);
+        ActivityLog::record($this->pdo, $userId, 'terms_accepted', 'version ' . Legal::TERMS_VERSION);
+
+        Session::flash('success', 'Thank you. Your acceptance has been recorded.');
+        $this->redirect('terms');
     }
 
     // ------------------------------------------------------------------

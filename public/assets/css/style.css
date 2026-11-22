@@ -204,3 +204,8 @@ ul.alert { padding-left: 2rem; }
 .check input { width: 18px; height: 18px; accent-color: var(--violet); }
 .danger-zone { border: 2px solid var(--danger); }
 .danger-zone h3 { color: var(--danger); }
+.legal h3 { margin: 1.6rem 0 .4rem; }
+.legal ul { padding-left: 1.3rem; }
+.legal li { margin-bottom: .3rem; }
+.legal-links { margin: 1rem 0; font-size: .92rem; }
+.site-footer a { color: var(--muted); }

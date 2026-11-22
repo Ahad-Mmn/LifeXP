@@ -19,7 +19,7 @@ final class AccountData
             'account'     => $this->one(
                 'SELECT username, email, bio, level, total_xp, current_streak, longest_streak,
                         last_active_date, created_at, profile_visibility, show_on_leaderboards,
-                        show_badges, show_activity
+                        show_badges, show_activity, terms_accepted_at, terms_version
                  FROM users WHERE id = :id',
                 $id
             ),

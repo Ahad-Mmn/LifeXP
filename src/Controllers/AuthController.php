@@ -13,6 +13,7 @@ use LifeXP\Services\XpService;
 use LifeXP\Models\Stats;
 use LifeXP\Services\ActivityLog;
 use LifeXP\Services\RateLimiter;
+use LifeXP\Core\Legal;
 
 final class AuthController
 {
@@ -31,7 +32,7 @@ final class AuthController
     {
         $this->guestOnly();
         $errors = [];
-        $old = ['username' => '', 'email' => ''];
+        $old = ['username' => '', 'email' => '', 'accepted' => false];
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // ---- Input filtering ----
@@ -40,13 +41,17 @@ final class AuthController
             $password = (string) ($_POST['password'] ?? '');
             $confirm  = (string) ($_POST['password_confirm'] ?? '');
             $captcha  = (string) ($_POST['captcha'] ?? '');
-            $old = ['username' => $username, 'email' => $email];
+            $accepted = isset($_POST['accept_terms']);
+            $old = ['username' => $username, 'email' => $email, 'accepted' => $accepted];
 
             if (!Csrf::verify($_POST['csrf_token'] ?? null)) {
                 $errors[] = 'Your session expired. Please try again.';
             }
             if (!Captcha::verify($captcha)) {
                 $errors[] = 'Wrong answer to the maths question.';
+            }
+            if (!$accepted) {
+                $errors[] = 'You must accept the Terms of Use, Privacy Policy and Community Rules.';
             }
             if (!preg_match('/^[A-Za-z0-9_]{3,20}$/', $username)) {
                 $errors[] = 'Username must be 3-20 characters: letters, numbers and underscores only.';
@@ -76,7 +81,7 @@ final class AuthController
                 // ---- Password encryption (hashing) ----
                 $hash = password_hash($password, PASSWORD_DEFAULT);
                 try {
-                    $this->users->create($username, $email, $hash);
+                    $this->users->create($username, $email, $hash, Legal::TERMS_VERSION);
                 } catch (\PDOException $e) {
                     if ($e->getCode() !== '23000') {   // 23000 = duplicate key (race condition)
                         throw $e;

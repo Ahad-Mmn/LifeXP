@@ -1,0 +1,49 @@
+{% extends "base.twig" %}
+
+{% block title %}Community Rules | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="card wide-card legal">
+    <h2>Community Rules</h2>
+    <p class="hint">Version {{ legal_version }}, last updated {{ legal_updated }}</p>
+    <p>{{ app_name }} works best when people feel safe and encouraged. These rules apply to everything you write or share here, including the forum when it opens.</p>
+
+    <h3>1. Be kind</h3>
+    <ul>
+        <li>Treat other players with respect, even when you disagree.</li>
+        <li>No harassment, bullying, threats or hate towards any person or group.</li>
+        <li>Celebrate other people's progress. Never mock someone's goals or struggles.</li>
+    </ul>
+
+    <h3>2. Play honestly</h3>
+    <ul>
+        <li>Complete quests for real. The game works on trust.</li>
+        <li>Do not use bugs, scripts or tricks to gain XP.</li>
+        <li>Custom quests should describe real goals, not things designed to earn easy XP.</li>
+    </ul>
+
+    <h3>3. Protect privacy</h3>
+    <ul>
+        <li>Do not share anyone's personal information, including your own address, phone number or financial details.</li>
+        <li>Do not pretend to be another person.</li>
+    </ul>
+
+    <h3>4. Keep it safe and legal</h3>
+    <ul>
+        <li>No spam, scams, advertising or links to harmful content.</li>
+        <li>No sexual, violent or illegal content.</li>
+        <li>No encouragement of self-harm, extreme dieting or dangerous challenges.</li>
+    </ul>
+
+    <h3>5. Health and wellbeing</h3>
+    <p>Quests are suggestions, not medical, financial or professional advice. Listen to your body and speak to a qualified professional if you are unsure. If you or someone you know is struggling, please contact a doctor or a local support service.</p>
+
+    <h3>6. Reporting and consequences</h3>
+    <ul>
+        <li>If something breaks these rules, tell an administrator. Contact: [your contact email].</li>
+        <li>Depending on how serious it is, we may remove content, issue a warning, suspend an account, or remove an account.</li>
+    </ul>
+
+    {% include 'partials/legal_links.twig' %}
+</div>
+{% endblock %}

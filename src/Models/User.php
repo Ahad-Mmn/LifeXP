@@ -16,7 +16,8 @@ final class User
         $stmt = $this->pdo->prepare(
             'SELECT id, username, email, bio, total_xp, level, role, created_at,
                     current_streak, longest_streak, last_active_date,
-                    profile_visibility, show_on_leaderboards, show_badges, show_activity
+                    profile_visibility, show_on_leaderboards, show_badges, show_activity,
+                    terms_accepted_at, terms_version
              FROM users WHERE id = :id'
         );
         $stmt->execute(['id' => $id]);
@@ -44,12 +45,13 @@ final class User
         return (bool) $stmt->fetchColumn();
     }
 
-    public function create(string $username, string $email, string $passwordHash): int
+    public function create(string $username, string $email, string $passwordHash, string $termsVersion): int
     {
         $stmt = $this->pdo->prepare(
-            'INSERT INTO users (username, email, password_hash) VALUES (:u, :e, :p)'
+            'INSERT INTO users (username, email, password_hash, terms_accepted_at, terms_version)
+             VALUES (:u, :e, :p, NOW(), :v)'
         );
-        $stmt->execute(['u' => $username, 'e' => $email, 'p' => $passwordHash]);
+        $stmt->execute(['u' => $username, 'e' => $email, 'p' => $passwordHash, 'v' => $termsVersion]);
         return (int) $this->pdo->lastInsertId();
     }
 
@@ -122,5 +124,11 @@ final class User
     public function countAdmins(): int
     {
         return (int) $this->pdo->query("SELECT COUNT(*) FROM users WHERE role = 'admin'")->fetchColumn();
+    }
+
+    public function acceptTerms(int $id, string $version): void
+    {
+        $stmt = $this->pdo->prepare('UPDATE users SET terms_accepted_at = NOW(), terms_version = :v WHERE id = :id');
+        $stmt->execute(['v' => $version, 'id' => $id]);
     }
 }

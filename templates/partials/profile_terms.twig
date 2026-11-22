@@ -1,0 +1,24 @@
+<div class="card wide-card profile-card">
+    <h3>Terms and policies</h3>
+    <p>Current version: <strong>{{ legal_version }}</strong>, updated {{ legal_updated }}.</p>
+    {% include 'partials/legal_links.twig' %}
+
+    {% if user.terms_accepted_at and user.terms_version == legal_version %}
+        <p class="alert alert-success">
+            You accepted version {{ user.terms_version }} on {{ user.terms_accepted_at|date('d M Y, H:i') }}.
+        </p>
+    {% else %}
+        <p class="alert alert-error">
+            {% if user.terms_accepted_at %}
+                The terms have changed since you accepted version {{ user.terms_version }}.
+            {% else %}
+                You have not accepted the terms yet.
+            {% endif %}
+            Please read them, then accept.
+        </p>
+        <form method="post" action="index.php?page=profile_terms">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button type="submit" class="btn btn-success">I accept the Terms, Privacy Policy and Community Rules</button>
+        </form>
+    {% endif %}
+</div>
