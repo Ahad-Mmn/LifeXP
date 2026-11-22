@@ -7,12 +7,15 @@ use PDO;
 
 final class Quest
 {
-    /** Difficulty => XP reward. The server decides XP, never the browser. */
+    /** Difficulty names (used by the search filter) */
     public const XP = ['easy' => 10, 'medium' => 25, 'hard' => 50, 'epic' => 100];
 
     public const TYPES = ['main', 'side', 'bonus', 'custom'];
 
-    /** Sort options: key => fixed SQL. ORDER BY can't use parameters, so we whitelist. */
+    /** XP for a player's own quests. Epic is not offered, and old epic quests count as hard. */
+    public const CUSTOM_XP = ['easy' => 5, 'medium' => 12, 'hard' => 25];
+
+    /** Sort options: key => fixed SQL. ORDER BY cannot use parameters, so we whitelist. */
     public const SORTS = [
         'due'    => 'q.status ASC, q.due_date IS NULL, q.due_date ASC, q.created_at DESC',
         'newest' => 'q.created_at DESC',
@@ -22,6 +25,11 @@ final class Quest
 
     public function __construct(private PDO $pdo)
     {
+    }
+
+    public static function customXp(string $difficulty): int
+    {
+        return self::CUSTOM_XP[$difficulty] ?? self::CUSTOM_XP['hard'];
     }
 
     /** READ (list): all quests belonging to one user */
@@ -45,8 +53,6 @@ final class Quest
         $params = ['uid' => $userId];
 
         if ($f['q'] !== '') {
-            // Escape LIKE wildcards so "%" and "_" are treated as normal characters.
-            // Two separate placeholders: real prepared statements can't reuse one name twice.
             $like = '%' . addcslashes($f['q'], '\\%_') . '%';
             $where[] = '(q.title LIKE :kw1 OR q.description LIKE :kw2)';
             $params['kw1'] = $like;
@@ -55,6 +61,10 @@ final class Quest
         if ($f['category_id'] > 0) {
             $where[] = 'q.category_id = :cat';
             $params['cat'] = $f['category_id'];
+        }
+        if ($f['type'] !== '') {
+            $where[] = 'q.quest_type = :type';
+            $params['type'] = $f['type'];
         }
         if ($f['difficulty'] !== '') {
             $where[] = 'q.difficulty = :diff';
@@ -73,7 +83,7 @@ final class Quest
             $params['dto'] = $f['due_to'];
         }
 
-        $orderBy = self::SORTS[$f['sort']] ?? self::SORTS['due'];   // whitelisted
+        $orderBy = self::SORTS[$f['sort']] ?? self::SORTS['due'];
 
         $sql = 'SELECT q.*, c.name AS category_name, c.color AS category_color
                 FROM quests q
@@ -86,6 +96,20 @@ final class Quest
         return $stmt->fetchAll();
     }
 
+    /** Bonus offers waiting for an answer */
+    public function offersFor(int $userId, string $now): array
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT q.*, c.name AS category_name, c.color AS category_color
+             FROM quests q
+             JOIN categories c ON c.id = q.category_id
+             WHERE q.user_id = :uid AND q.status = 'offered' AND q.expires_at >= :now
+             ORDER BY q.expires_at ASC"
+        );
+        $stmt->execute(['uid' => $userId, 'now' => $now]);
+        return $stmt->fetchAll();
+    }
+
     /** READ (one): only returns the quest if it belongs to this user */
     public function find(int $id, int $userId): ?array
     {
@@ -94,7 +118,29 @@ final class Quest
         return $stmt->fetch() ?: null;
     }
 
-    /** CREATE */
+    /** One quest with its category, for the detail view */
+    public function findDetailed(int $id, int $userId): ?array
+    {
+        $stmt = $this->pdo->prepare(
+            'SELECT q.*, c.name AS category_name, c.color AS category_color
+             FROM quests q
+             JOIN categories c ON c.id = q.category_id
+             WHERE q.id = :id AND q.user_id = :uid'
+        );
+        $stmt->execute(['id' => $id, 'uid' => $userId]);
+        return $stmt->fetch() ?: null;
+    }
+
+    public function countActiveCustom(int $userId): int
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT COUNT(*) FROM quests WHERE user_id = :uid AND quest_type = 'custom' AND status = 'active'"
+        );
+        $stmt->execute(['uid' => $userId]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    /** CREATE (the player's own quests) */
     public function create(int $userId, array $d): int
     {
         $stmt = $this->pdo->prepare(
@@ -107,7 +153,7 @@ final class Quest
             'title' => $d['title'],
             'descr' => $d['description'],
             'diff'  => $d['difficulty'],
-            'xp'    => self::XP[$d['difficulty']],
+            'xp'    => self::customXp($d['difficulty']),
             'due'   => $d['due_date'],
         ]);
         return (int) $this->pdo->lastInsertId();
@@ -127,7 +173,7 @@ final class Quest
             'title' => $d['title'],
             'descr' => $d['description'],
             'diff'  => $d['difficulty'],
-            'xp'    => self::XP[$d['difficulty']],
+            'xp'    => self::customXp($d['difficulty']),
             'due'   => $d['due_date'],
             'id'    => $id,
             'uid'   => $userId,

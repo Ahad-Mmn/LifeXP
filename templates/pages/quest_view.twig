@@ -1,0 +1,10 @@
+{% extends "base.twig" %}
+
+{% block title %}{{ q.title }} | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="card wide-card">
+    {% include 'partials/quest_detail.twig' %}
+    <p><a href="index.php?page=quests">&larr; Back to my quests</a></p>
+</div>
+{% endblock %}

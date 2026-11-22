@@ -20,7 +20,26 @@
         }, 3500);
     }
 
-    // ---------- 1. Confirm before delete (from Step 4) ----------
+    // Colours set from data- attributes, so templates need no inline style attributes
+    function applyStyles(root) {
+        root = root || document;
+        root.querySelectorAll('[data-width]').forEach(function (el) {
+            var w = parseInt(el.getAttribute('data-width'), 10);
+            if (!isNaN(w)) { el.style.width = Math.max(0, Math.min(100, w)) + '%'; }
+        });
+        root.querySelectorAll('[data-bg]').forEach(function (el) {
+            el.style.background = el.getAttribute('data-bg');
+        });
+        root.querySelectorAll('[data-color]').forEach(function (el) {
+            el.style.color = el.getAttribute('data-color');
+        });
+        root.querySelectorAll('[data-border]').forEach(function (el) {
+            el.style.borderLeftColor = el.getAttribute('data-border');
+        });
+    }
+    applyStyles();
+
+    // ---------- 1. Confirm before risky actions ----------
     document.addEventListener('submit', function (e) {
         var message = e.target.getAttribute && e.target.getAttribute('data-confirm');
         if (message && !window.confirm(message)) {
@@ -39,7 +58,7 @@
         var runSearch = function () {
             var url = 'index.php?' + new URLSearchParams(new FormData(form)).toString();
 
-            if (controller) { controller.abort(); }   // cancel the previous request
+            if (controller) { controller.abort(); }
             controller = new AbortController();
             results.classList.add('loading');
 
@@ -49,15 +68,16 @@
                 signal: controller.signal
             })
             .then(function (res) {
-                if (res.redirected) { window.location.reload(); return null; }   // session expired
+                if (res.redirected) { window.location.reload(); return null; }
                 if (!res.ok) { throw new Error('Bad response'); }
                 return res.text();
             })
             .then(function (html) {
                 if (html === null) { return; }
-                results.innerHTML = html;               // HTML already escaped by Twig
+                results.innerHTML = html;
+                applyStyles(results);
                 results.classList.remove('loading');
-                history.replaceState(null, '', url);    // keep the URL shareable
+                history.replaceState(null, '', url);
             })
             .catch(function (err) {
                 if (err.name === 'AbortError') { return; }
@@ -66,43 +86,70 @@
             });
         };
 
-        form.addEventListener('input', function () {   // fires for text, selects and dates
+        form.addEventListener('input', function () {
             clearTimeout(timer);
-            timer = setTimeout(runSearch, 300);         // wait until typing pauses
+            timer = setTimeout(runSearch, 300);
         });
         form.addEventListener('submit', function (e) {
             e.preventDefault();
             clearTimeout(timer);
             runSearch();
         });
+        document.addEventListener('quests:refresh', runSearch);
     }
 
-    // ---------- 3. Complete a quest without reloading ----------
-    function markDone(card) {
-        card.classList.add('quest-done');
-        var actions = card.querySelector('.quest-actions');
-        var completeForm = actions.querySelector('.js-complete');
-        var editLink = actions.querySelector('a.btn');
-        if (completeForm) { completeForm.remove(); }
-        if (editLink) { editLink.remove(); }
-        var tag = document.createElement('span');
-        tag.className = 'tag tag-done';
-        tag.textContent = 'Completed';
-        actions.insertBefore(tag, actions.firstChild);
+    // ---------- 3. Quest detail panel ----------
+    var dialog = document.getElementById('quest-dialog');
+    var dialogBody = document.getElementById('quest-dialog-body');
+
+    if (dialog && dialogBody && typeof dialog.showModal === 'function') {
+        var openQuest = function (url) {
+            fetch(url, {
+                headers: { 'X-Requested-With': 'fetch' },
+                credentials: 'same-origin'
+            })
+            .then(function (res) {
+                if (res.redirected) { window.location.reload(); return null; }
+                if (!res.ok) { throw new Error('Bad response'); }
+                return res.text();
+            })
+            .then(function (html) {
+                if (html === null) { return; }
+                dialogBody.innerHTML = html;
+                applyStyles(dialogBody);
+                if (!dialog.open) { dialog.showModal(); }
+            })
+            .catch(function () { toast('Could not open that quest.', 'error'); });
+        };
+
+        document.addEventListener('click', function (e) {
+            var link = e.target.closest ? e.target.closest('.js-open-quest') : null;
+            if (link) {
+                e.preventDefault();
+                openQuest(link.getAttribute('href'));
+                return;
+            }
+            if (e.target.closest && e.target.closest('[data-close-dialog]')) {
+                dialog.close();
+                return;
+            }
+            if (e.target === dialog) { dialog.close(); }   // click on the backdrop
+        });
     }
 
-    // Event delegation: still works after live search replaces the list
+    // ---------- 4. Complete a quest without reloading ----------
     document.addEventListener('submit', function (e) {
         var f = e.target;
         if (!f.classList || !f.classList.contains('js-complete')) { return; }
+        if (e.defaultPrevented) { return; }
         e.preventDefault();
 
-        var btn = f.querySelector('button');
-        btn.disabled = true;
+        var btn = f.querySelector('button[type=submit]');
+        if (btn) { btn.disabled = true; }
 
         fetch('index.php?page=ajax_complete', {
             method: 'POST',
-            body: new FormData(f),                      // includes the CSRF token
+            body: new FormData(f),
             headers: { 'X-Requested-With': 'fetch' },
             credentials: 'same-origin'
         })
@@ -115,34 +162,36 @@
                 toast(d.message || 'Could not complete quest.', 'error');
                 if (r.status === 401 || r.status === 409) {
                     setTimeout(function () { window.location.reload(); }, 1200);
-                } else {
+                } else if (btn) {
                     btn.disabled = false;
                 }
                 return;
             }
 
-            markDone(f.closest('.quest'));
+            if (dialog && dialog.open) { dialog.close(); }
 
-            var msg = '+' + d.earned + ' XP';
-            if (d.bonus_pct > 0) { msg += ' (+' + d.bonus_pct + '% streak bonus)'; }
+            var msg = d.earned > 0 ? '+' + d.earned + ' XP' : 'Quest complete';
+            if (d.bonus_pct > 0 && d.earned > 0) { msg += ' (+' + d.bonus_pct + '% streak bonus)'; }
             msg += ' \u00B7 Streak: ' + d.streak;
             toast(msg, 'success');
 
+            if (d.xp_note) { toast(d.xp_note, 'error'); }
             if (d.leveled_up) {
                 toast('LEVEL UP! Level ' + d.new_level + ' - ' + d.new_title, 'levelup');
             }
-
             (d.new_badges || []).forEach(function (name) {
                 toast('Badge unlocked: ' + name, 'levelup');
             });
+
+            document.dispatchEvent(new CustomEvent('quests:refresh'));
         })
         .catch(function () {
             toast('Something went wrong. Please try again.', 'error');
-            btn.disabled = false;
+            if (btn) { btn.disabled = false; }
         });
     });
 
-    // ---------- 4. Username availability check ----------
+    // ---------- 5. Username availability check ----------
     var nameInput = document.querySelector('[data-check-username]');
     if (nameInput) {
         var status = document.getElementById('username-status');
@@ -165,7 +214,7 @@
                 })
                 .then(function (res) { return res.json(); })
                 .then(function (d) {
-                    if (mine !== seq) { return; }       // ignore out-of-date answers
+                    if (mine !== seq) { return; }
                     status.textContent = d.message;
                     status.className = 'field-status ' + (d.available ? 'ok' : 'bad');
                 })
@@ -173,7 +222,8 @@
             }, 400);
         });
     }
-        // ---------- 5. Password strength meter (advisory only; the server enforces the rules) ----------
+
+    // ---------- 6. Password strength meter (advisory only; the server enforces the rules) ----------
     var pwInput = document.querySelector('[data-strength]');
     var meter = document.getElementById('strength');
     if (pwInput && meter) {
@@ -192,7 +242,7 @@
                 if (/[^A-Za-z0-9]/.test(p)) { s++; }
                 level = s <= 1 ? 1 : (s === 2 ? 2 : (s === 3 ? 3 : 4));
             }
-            meter.setAttribute('data-level', String(level));   // CSS draws the bar (no inline styles)
+            meter.setAttribute('data-level', String(level));
             meterText.textContent = labels[level];
         });
     }

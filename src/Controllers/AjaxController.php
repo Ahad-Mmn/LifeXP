@@ -10,6 +10,7 @@ use LifeXP\Services\CompletionService;
 use LifeXP\Services\XpService;
 use PDO;
 use LifeXP\Services\DeliveryService;
+use LifeXP\Services\CompletionRefused;
 
 final class AjaxController
 {
@@ -42,10 +43,10 @@ final class AjaxController
     }
 
     /** POST: complete a quest and return the result as JSON */
+    /** POST: complete a quest and return the result as JSON */
     public function complete(): void
     {
         if (Session::userId() === null) {
-            DeliveryService::sync($this->pdo, $userId);
             $this->json(['ok' => false, 'message' => 'Please log in again.'], 401);
         }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !Csrf::verify($_POST['csrf_token'] ?? null)) {
@@ -53,11 +54,18 @@ final class AjaxController
         }
 
         $userId = (int) Session::userId();
-        $result = (new CompletionService($this->pdo))->complete((int) ($_POST['id'] ?? 0), $userId);
+
+        try {
+            $result = (new CompletionService($this->pdo))->complete((int) ($_POST['id'] ?? 0), $userId);
+        } catch (CompletionRefused $e) {
+            $this->json(['ok' => false, 'message' => $e->getMessage()], 422);
+        }
 
         if ($result === null) {
-            $this->json(['ok' => false, 'message' => 'Quest not found or already completed.'], 409);
+            $this->json(['ok' => false, 'message' => 'Quest not found, already finished or out of time.'], 409);
         }
+
+        DeliveryService::sync($this->pdo, $userId);
 
         $user     = (new User($this->pdo))->findById($userId);
         $progress = XpService::progress((int) $user['total_xp']);
@@ -70,6 +78,8 @@ final class AjaxController
             'leveled_up' => $result['leveled_up'],
             'new_level'  => $result['new_level'],
             'new_title'  => $result['new_title'],
+            'new_badges' => $result['new_badges'],
+            'xp_note'    => CompletionService::noteText($result['note']),
             'total_xp'   => (int) $user['total_xp'],
             'percent'    => $progress['percent'],
         ]);

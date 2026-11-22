@@ -5,8 +5,46 @@
 {% block content %}
 <div class="page-head">
     <h2>My Quests</h2>
-    <a class="btn" href="index.php?page=quest_create">+ New quest</a>
+    <a class="btn" href="index.php?page=quest_create">+ Custom quest</a>
 </div>
+
+{% if offers %}
+<section class="offers">
+    <h3>Bonus offers</h3>
+    <p class="hint">Optional extras. Accepting starts the clock. Declining costs nothing.</p>
+    <div class="quest-list">
+        {% for o in offers %}
+            {% set blurb = o.summary ?: o.description %}
+            <article class="quest offer" data-border="{{ o.category_color }}">
+                <div class="quest-main">
+                    <h3>{{ o.title }}</h3>
+                    {% if blurb %}<p>{{ blurb }}</p>{% endif %}
+                    <p class="meta">
+                        <span class="tag" data-bg="{{ o.category_color }}">{{ o.category_name }}</span>
+                        <span class="tag tag-type">Bonus</span>
+                        <span class="tag tag-{{ o.difficulty }}">{{ o.difficulty|capitalize }}</span>
+                        <strong>+{{ o.xp_reward }} XP</strong>
+                        {% if o.time_left %}<span class="time-left">&middot; Offer open: {{ o.time_left.text }}</span>{% endif %}
+                    </p>
+                </div>
+                <div class="quest-actions">
+                    <form method="post" action="index.php?page=quest_accept" class="inline-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="id" value="{{ o.id }}">
+                        <button type="submit" class="btn btn-small btn-success">Accept</button>
+                    </form>
+                    <form method="post" action="index.php?page=quest_decline" class="inline-form">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="id" value="{{ o.id }}">
+                        <button type="submit" class="btn btn-small btn-secondary">Decline</button>
+                    </form>
+                    <a class="btn btn-small btn-secondary js-open-quest" href="index.php?page=quest_view&amp;id={{ o.id }}">View</a>
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
 
 <form method="get" action="index.php" class="filters" id="filter-form">
     <input type="hidden" name="page" value="quests">
@@ -23,6 +61,16 @@
             <option value="">All</option>
             {% for c in categories %}
                 <option value="{{ c.id }}" {% if filters.category_id == c.id %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="filter-field">
+        <label for="f-type">Type</label>
+        <select id="f-type" name="type">
+            <option value="">All</option>
+            {% for t in types %}
+                <option value="{{ t }}" {% if filters.type == t %}selected{% endif %}>{{ t|capitalize }}</option>
             {% endfor %}
         </select>
     </div>
@@ -67,11 +115,15 @@
 
     <div class="filter-buttons">
         <button type="submit" class="btn btn-small">Search</button>
-            <a class="btn btn-small btn-secondary" href="index.php?page=quests">Clear</a>
+        <a class="btn btn-small btn-secondary" href="index.php?page=quests">Clear</a>
     </div>
 </form>
 
 <div id="quest-results">
     {% include 'partials/quest_results.twig' %}
 </div>
+
+<dialog id="quest-dialog" class="quest-dialog" aria-label="Quest details">
+    <div id="quest-dialog-body"></div>
+</dialog>
 {% endblock %}

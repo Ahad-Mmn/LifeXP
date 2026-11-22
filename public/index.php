@@ -187,6 +187,15 @@ switch ($page) {
     case 'profile_terms':
         $profile->acceptTerms();
         break;
+    case 'quest_view':
+        $questCtl->view();
+        break;
+    case 'quest_accept':
+        $questCtl->acceptBonus();
+        break;
+    case 'quest_decline':
+        $questCtl->declineBonus();
+        break;
     default:
         http_response_code(404);
         echo $twig->render('pages/404.twig');

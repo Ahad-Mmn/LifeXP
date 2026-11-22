@@ -5,6 +5,7 @@
 {% block content %}
 <div class="card">
     <h2>{{ mode == 'edit' ? 'Edit quest' : 'New quest' }}</h2>
+    <p class="hint">Custom quests are for your own goals. They earn reduced XP (up to 60 XP a day in total), and can be completed once they are at least 2 minutes old.</p>
     {% include 'partials/errors.twig' %}
 
     <form method="post" action="{{ action }}" novalidate>

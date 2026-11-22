@@ -1,0 +1,75 @@
+<div class="dialog-inner">
+    <div class="dialog-head">
+        <div>
+            <h2>{{ q.title }}</h2>
+            <p class="meta">
+                <span class="tag" data-bg="{{ q.category_color }}">{{ q.category_name }}</span>
+                <span class="tag tag-type">{{ q.quest_type|capitalize }}</span>
+                <span class="tag tag-{{ q.difficulty }}">{{ q.difficulty|capitalize }}</span>
+            </p>
+        </div>
+        {% if in_dialog %}
+            <button type="button" class="close-x" data-close-dialog aria-label="Close">&times;</button>
+        {% endif %}
+    </div>
+
+    <p class="detail-text">{{ q.description ?: q.summary }}</p>
+
+    {% if q.why %}
+        <div class="why-box">
+            <strong>Why it matters</strong>
+            <p>{{ q.why }}</p>
+        </div>
+    {% endif %}
+
+    <ul class="detail-facts">
+        <li><strong>Reward:</strong> +{{ q.xp_reward }} XP{% if q.quest_type == 'custom' %} (custom quests give reduced XP, up to 60 a day){% endif %}</li>
+        {% if q.status == 'offered' and q.time_left %}
+            <li><strong>Offer open:</strong> <span class="time-left {{ q.time_left.urgent ? 'urgent' : '' }}">{{ q.time_left.text }}</span></li>
+        {% elseif q.status == 'active' and q.time_left %}
+            <li><strong>Time left:</strong> <span class="time-left {{ q.time_left.urgent ? 'urgent' : '' }}">{{ q.time_left.text }}</span> (ends {{ q.expires_at|date('d M, H:i') }})</li>
+        {% elseif q.status == 'active' and q.due_date %}
+            <li><strong>Due:</strong> {{ q.due_date|date('d M Y') }}</li>
+        {% elseif q.status == 'completed' and q.resolved_at %}
+            <li><strong>Completed:</strong> {{ q.resolved_at|date('d M Y, H:i') }}</li>
+        {% endif %}
+    </ul>
+
+    <div class="detail-actions">
+        {% if q.status == 'active' %}
+            <details class="confirm-complete">
+                <summary class="btn btn-success">Complete this quest</summary>
+                <div class="confirm-body">
+                    <p>Did you really finish this? You will earn <strong>+{{ q.xp_reward }} XP</strong>, plus any streak bonus.</p>
+                    <form method="post" action="index.php?page=quest_complete" class="inline-form{{ in_dialog ? ' js-complete' : '' }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                        <input type="hidden" name="id" value="{{ q.id }}">
+                        <button type="submit" class="btn btn-small btn-success">Yes, I finished it</button>
+                    </form>
+                </div>
+            </details>
+            {% if q.quest_type == 'custom' %}
+                <a class="btn btn-small btn-secondary" href="index.php?page=quest_edit&amp;id={{ q.id }}">Edit</a>
+                <form method="post" action="index.php?page=quest_delete" class="inline-form"
+                      data-confirm="Delete this quest?">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                    <input type="hidden" name="id" value="{{ q.id }}">
+                    <button type="submit" class="btn btn-small btn-danger">Delete</button>
+                </form>
+            {% endif %}
+        {% elseif q.status == 'offered' %}
+            <form method="post" action="index.php?page=quest_accept" class="inline-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="id" value="{{ q.id }}">
+                <button type="submit" class="btn btn-success">Accept</button>
+            </form>
+            <form method="post" action="index.php?page=quest_decline" class="inline-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="id" value="{{ q.id }}">
+                <button type="submit" class="btn btn-secondary">Decline</button>
+            </form>
+        {% else %}
+            <span class="tag tag-done">{{ q.status|capitalize }}</span>
+        {% endif %}
+    </div>
+</div>

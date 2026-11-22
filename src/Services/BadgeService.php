@@ -19,7 +19,7 @@ final class BadgeService
                     COUNT(DISTINCT qc.category_id) AS cats,
                     SUM(qc.difficulty = 'epic') AS epics
              FROM quest_completions qc
-             WHERE qc.user_id = :u"
+             WHERE qc.user_id = :u AND qc.quest_type <> 'custom'"
         );
         $stmt->execute(['u' => $userId]);
         $s = $stmt->fetch();
