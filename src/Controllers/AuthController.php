@@ -14,6 +14,7 @@ use LifeXP\Models\Stats;
 use LifeXP\Services\ActivityLog;
 use LifeXP\Services\RateLimiter;
 use LifeXP\Core\Legal;
+use LifeXP\Services\DeliveryService;
 
 final class AuthController
 {
@@ -168,6 +169,7 @@ final class AuthController
             Session::logout();
             $this->redirect('login');
         }
+        DeliveryService::sync($this->pdo, (int) $user['id']);
 
         $uid = (int) $user['id'];
 

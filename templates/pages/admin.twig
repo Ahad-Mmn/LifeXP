@@ -26,7 +26,9 @@
                     <td><span class="tag {{ u.role == 'admin' ? 'tag-epic' : '' }}">{{ u.role }}</span></td>
                     <td>{{ u.level }}</td>
                     <td>{{ u.total_xp }}</td>
+                    <th>Quests</th><th>Score</th><th>Joined</th>
                     <td>{{ u.quest_count }}</td>
+                    <td>{{ u.productivity_score }}</td>
                     <td>{{ u.created_at|date('d M Y') }}</td>
                     <td class="row-actions">
                         {% if u.id != current_user.id %}

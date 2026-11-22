@@ -10,6 +10,7 @@ use LifeXP\Models\Quest;
 use PDO;
 use Twig\Environment;
 use LifeXP\Services\CompletionService;
+use LifeXP\Services\DeliveryService;
 
 final class QuestController
 {
@@ -27,6 +28,11 @@ final class QuestController
     {
         Session::requireLogin();
 
+        $ajax = ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'fetch';
+        if (!$ajax) {
+            DeliveryService::sync($this->pdo, (int) Session::userId());
+        }
+
         $filters = $this->cleanFilters($_GET);
         $quests  = $this->quests->search((int) Session::userId(), $filters);
 
@@ -35,9 +41,7 @@ final class QuestController
             $filters['status'], $filters['due_from'], $filters['due_to'],
         ]);
 
-        $ajax = ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'fetch';
         if ($ajax) {
-            // Same URL returns different content, so stop the browser caching the fragment
             header('Vary: X-Requested-With');
             header('Cache-Control: no-store');
         }
@@ -82,6 +86,10 @@ final class QuestController
         Session::requireLogin();
         $id = (int) ($_GET['id'] ?? 0);
         $quest = $this->quests->find($id, (int) Session::userId());
+        if ($quest !== null && ($quest['quest_type'] !== 'custom' || $quest['status'] !== 'active')) {
+            Session::flash('error', 'Only your own active quests can be edited.');
+            $this->redirect('quests');
+        }
         if ($quest === null) {
             $this->notFound();
             return;
@@ -121,8 +129,13 @@ final class QuestController
         }
 
         $id = (int) ($_POST['id'] ?? 0);
-        if ($this->quests->find($id, (int) Session::userId()) === null) {
+        $quest = $this->quests->find($id, (int) Session::userId());
+        if ($quest === null) {
             Session::flash('error', 'Quest not found.');
+            $this->redirect('quests');
+        }
+        if ($quest['quest_type'] !== 'custom' || $quest['status'] !== 'active') {
+            Session::flash('error', 'Only your own active quests can be deleted. Delivered quests can only be completed or skipped.');
             $this->redirect('quests');
         }
 
@@ -148,6 +161,7 @@ final class QuestController
         Session::flash('error', 'That quest was not found or is already completed.');
         $this->redirect('quests');
     }
+    DeliveryService::sync($this->pdo, (int) Session::userId());
 
     $msg = 'Quest complete! +' . $result['earned'] . ' XP';
     if ($result['bonus_pct'] > 0) {

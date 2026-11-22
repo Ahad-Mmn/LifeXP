@@ -9,6 +9,7 @@ use LifeXP\Models\Category;
 use LifeXP\Models\Interest;
 use PDO;
 use Twig\Environment;
+use LifeXP\Services\DeliveryService;
 
 final class OnboardingController
 {
@@ -17,7 +18,7 @@ final class OnboardingController
     private Interest $interests;
     private Category $categories;
 
-    public function __construct(private Environment $twig, PDO $pdo)
+    public function __construct(private Environment $twig, private PDO $pdo)
     {
         $this->interests  = new Interest($pdo);
         $this->categories = new Category($pdo);
@@ -94,6 +95,7 @@ final class OnboardingController
                 $this->interests->setTemplates($userId, $picked);
                 $this->interests->markOnboarded($userId);
                 Session::markOnboarded();
+                DeliveryService::sync($this->pdo, $userId);
                 Session::flash('success', 'Your interests are saved. Welcome to LifeXP!');
                 $this->redirect('dashboard');
             }

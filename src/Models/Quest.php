@@ -41,7 +41,7 @@ final class Quest
     /** SEARCH: any combination of filters, all applied together (AND) */
     public function search(int $userId, array $f): array
     {
-        $where  = ['q.user_id = :uid'];
+        $where  = ['q.user_id = :uid', "q.status IN ('active','completed')"];
         $params = ['uid' => $userId];
 
         if ($f['q'] !== '') {

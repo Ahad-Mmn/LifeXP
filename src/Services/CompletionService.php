@@ -65,8 +65,8 @@ final class CompletionService
             $newLevel = XpService::levelForXp($newTotal);
 
             // ---- Save everything ----
-            $this->pdo->prepare("UPDATE quests SET status = 'completed' WHERE id = :id")
-                ->execute(['id' => $questId]);
+            $this->pdo->prepare("UPDATE quests SET status = 'completed', resolved_at = :now WHERE id = :id")
+                ->execute(['now' => $nowStr, 'id' => $questId]);
 
             $this->pdo->prepare(
                 'INSERT INTO quest_completions (quest_id, user_id, xp_earned, category_id, difficulty, quest_type)

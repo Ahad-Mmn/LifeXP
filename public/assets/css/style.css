@@ -209,3 +209,4 @@ ul.alert { padding-left: 2rem; }
 .legal li { margin-bottom: .3rem; }
 .legal-links { margin: 1rem 0; font-size: .92rem; }
 .site-footer a { color: var(--muted); }
+.tag-type { background: var(--cyan-dark); }

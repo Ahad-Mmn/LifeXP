@@ -9,6 +9,7 @@ use LifeXP\Models\User;
 use LifeXP\Services\CompletionService;
 use LifeXP\Services\XpService;
 use PDO;
+use LifeXP\Services\DeliveryService;
 
 final class AjaxController
 {
@@ -44,6 +45,7 @@ final class AjaxController
     public function complete(): void
     {
         if (Session::userId() === null) {
+            DeliveryService::sync($this->pdo, $userId);
             $this->json(['ok' => false, 'message' => 'Please log in again.'], 401);
         }
         if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !Csrf::verify($_POST['csrf_token'] ?? null)) {

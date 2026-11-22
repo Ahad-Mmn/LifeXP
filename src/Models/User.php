@@ -59,7 +59,7 @@ final class User
     public function listWithCounts(): array
     {
         return $this->pdo->query(
-            'SELECT u.id, u.username, u.email, u.role, u.level, u.total_xp, u.created_at,
+            'SELECT u.id, u.username, u.email, u.role, u.level, u.total_xp, u.created_at, u.productivity_score,
                     (SELECT COUNT(*) FROM quests q WHERE q.user_id = u.id) AS quest_count
              FROM users u
              ORDER BY u.created_at DESC, u.id DESC
