@@ -3,23 +3,62 @@
 {% block title %}Leaderboard | {{ app_name }}{% endblock %}
 
 {% block content %}
-<h2>Leaderboard</h2>
-<p class="hint">Top 10 heroes by total XP. Your rank: <strong>#{{ my_rank }}</strong></p>
+<div class="page-head">
+    <h2>Leaderboard</h2>
+</div>
 
-<table class="board">
-    <thead>
-        <tr><th>#</th><th>Hero</th><th>Title</th><th>Level</th><th>XP</th></tr>
-    </thead>
-    <tbody>
-        {% for r in rows %}
-            <tr class="{{ current_user and r.username == current_user.username ? 'me' : '' }}">
-                <td>{{ loop.index }}</td>
-                <td>{{ r.username }}</td>
-                <td>{{ r.title }}</td>
-                <td>{{ r.level }}</td>
-                <td>{{ r.total_xp }}</td>
-            </tr>
+<form method="get" action="index.php" class="board-filters" id="board-form">
+    <input type="hidden" name="page" value="leaderboard">
+
+    <div class="chips" role="radiogroup" aria-label="Category">
+        <label class="chip">
+            <input type="radio" name="category" value="" {% if filters.category_id == 0 %}checked{% endif %}>
+            <span>All categories</span>
+        </label>
+        {% for c in categories %}
+            <label class="chip">
+                <input type="radio" name="category" value="{{ c.id }}" {% if filters.category_id == c.id %}checked{% endif %}>
+                <span>{{ c.name }}</span>
+            </label>
         {% endfor %}
-    </tbody>
-</table>
+    </div>
+
+    <div class="board-selects">
+        <div>
+            <label for="b-metric">Ranked by</label>
+            <select id="b-metric" name="metric">
+                {% for key, label in metrics %}
+                    <option value="{{ key }}" {% if filters.metric == key %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="b-period">Period</label>
+            <select id="b-period" name="period">
+                {% for key, label in periods %}
+                    <option value="{{ key }}" {% if filters.period == key %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label for="b-type">Quests that count</label>
+            <select id="b-type" name="type">
+                {% for key, label in types %}
+                    <option value="{{ key }}" {% if filters.type == key %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-buttons">
+            <button type="submit" class="btn btn-small">Show</button>
+        </div>
+    </div>
+</form>
+
+<div id="board-results">
+    {% include 'partials/board_results.twig' %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="assets/js/leaderboard.js"></script>
 {% endblock %}

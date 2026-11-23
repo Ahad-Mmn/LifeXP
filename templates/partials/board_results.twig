@@ -1,0 +1,44 @@
+<h3 class="board-heading">{{ heading }}</h3>
+
+{% if not applies %}
+    <p class="hint">Category, period and quest type do not apply to this board.</p>
+{% else %}
+    <p class="hint">XP earned counts the XP from completed quests. Penalties are not subtracted.</p>
+{% endif %}
+
+{% if rows is empty %}
+    <div class="card">
+        <p>Nobody is on this board yet. Complete a quest to be the first.</p>
+    </div>
+{% else %}
+    <div class="table-wrap">
+        <table class="board">
+            <thead>
+                <tr><th>#</th><th>Hero</th><th>Title</th><th>Level</th><th>{{ value_label }}</th></tr>
+            </thead>
+            <tbody>
+                {% for r in rows %}
+                    <tr class="{{ r.is_me ? 'me' : '' }}">
+                        <td>{{ r.rank }}</td>
+                        <td>{{ r.username }}</td>
+                        <td>{{ r.title }}</td>
+                        <td>{{ r.level }}</td>
+                        <td>{{ r.value }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}
+
+<p class="position-box">
+    {% if me.status == 'hidden' %}
+        You are hidden from leaderboards. You can change this under Profile, then Privacy.
+    {% elseif me.status == 'none' %}
+        You are not on this board yet.
+    {% elseif in_top %}
+        You are <strong>#{{ me.rank }}</strong> of {{ me.total }}.
+    {% else %}
+        Your position: <strong>#{{ me.rank }}</strong> of {{ me.total }}, with {{ me.value }} {{ value_label|lower }}.
+    {% endif %}
+</p>
