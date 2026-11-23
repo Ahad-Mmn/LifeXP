@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace LifeXP\Services;
 
 use DateTimeImmutable;
+use LifeXP\Core\Session;
 use PDO;
 use Throwable;
 
@@ -27,37 +28,99 @@ final class DeliveryService
     public static function sync(PDO $pdo, int $userId): void
     {
         try {
-            self::run($pdo, $userId, new DateTimeImmutable('now'));
+            $summary = self::run($pdo, $userId, new DateTimeImmutable('now'));
         } catch (Throwable $e) {
             if ($pdo->inTransaction()) {
                 $pdo->rollBack();
             }
             error_log('LifeXP delivery sync failed: ' . $e->getMessage());
+            return;
+        }
+
+        self::announce($summary);
+    }
+
+    /** Tells the player about quests that ran out of time */
+    private static function announce(array $summary): void
+    {
+        foreach ($summary['expired'] ?? [] as $event) {
+            $text = 'Time ran out on "' . $event['title'] . '".';
+            if ($event['penalty'] > 0) {
+                $text .= ' You lost ' . $event['penalty'] . ' XP.';
+            }
+            Session::flash('error', $text);
+        }
+
+        $old = (int) ($summary['old_level'] ?? 0);
+        $new = (int) ($summary['new_level'] ?? 0);
+        if ($new > 0 && $new < $old) {
+            Session::flash('error', 'Your level dropped to ' . $new . ' (' . XpService::title($new) . ').');
         }
     }
 
-    private static function run(PDO $pdo, int $userId, DateTimeImmutable $now): void
+    private static function run(PDO $pdo, int $userId, DateTimeImmutable $now): array
     {
         $nowStr = $now->format('Y-m-d H:i:s');
         $pdo->beginTransaction();
 
-        // Locking the player's row means two tabs cannot deliver at the same moment
-        $stmt = $pdo->prepare('SELECT onboarded FROM users WHERE id = :u FOR UPDATE');
+        // Locking the player's row means two tabs cannot deliver or penalise at the same moment
+        $stmt = $pdo->prepare('SELECT onboarded, total_xp, level FROM users WHERE id = :u FOR UPDATE');
         $stmt->execute(['u' => $userId]);
         $row = $stmt->fetch();
         if (!$row || (int) $row['onboarded'] !== 1) {
             $pdo->rollBack();
-            return;
+            return [];
         }
 
-        // Time limits: quests past their limit expire, unanswered bonus offers lapse
-        $pdo->prepare(
-            "UPDATE quests SET status = 'expired', resolved_at = :now
+        // Quests past their time limit expire, and main and side quests cost XP
+        $stmt = $pdo->prepare(
+            "SELECT id, title, quest_type, xp_reward FROM quests
              WHERE user_id = :u AND status = 'active'
                AND quest_type IN ('main','side','bonus')
-               AND expires_at IS NOT NULL AND expires_at < :cut"
-        )->execute(['now' => $nowStr, 'u' => $userId, 'cut' => $nowStr]);
+               AND expires_at IS NOT NULL AND expires_at < :cut FOR UPDATE"
+        );
+        $stmt->execute(['u' => $userId, 'cut' => $nowStr]);
+        $expired = $stmt->fetchAll();
 
+        $oldLevel = (int) $row['level'];
+        $newLevel = $oldLevel;
+        $events   = [];
+
+        if ($expired) {
+            $total  = (int) $row['total_xp'];
+            $mark   = $pdo->prepare("UPDATE quests SET status = 'expired', resolved_at = :now WHERE id = :id");
+            $ledger = $pdo->prepare(
+                'INSERT INTO xp_ledger (user_id, delta, reason, quest_id, created_at)
+                 VALUES (:u, :d, :r, :q, :at)'
+            );
+
+            foreach ($expired as $q) {
+                $mark->execute(['now' => $nowStr, 'id' => $q['id']]);
+
+                $penalty = min(XpService::penaltyFor((string) $q['quest_type'], (int) $q['xp_reward']), $total);
+                if ($penalty > 0) {
+                    $ledger->execute([
+                        'u'  => $userId,
+                        'd'  => -$penalty,
+                        'r'  => 'quest_expired',
+                        'q'  => $q['id'],
+                        'at' => $nowStr,
+                    ]);
+                    $total -= $penalty;
+                }
+                $events[] = ['title' => $q['title'], 'type' => $q['quest_type'], 'penalty' => $penalty];
+            }
+
+            if ($total !== (int) $row['total_xp']) {
+                $newLevel = XpService::levelForXp($total);
+                $pdo->prepare('UPDATE users SET total_xp = :xp, level = :lvl WHERE id = :u')
+                    ->execute(['xp' => $total, 'lvl' => $newLevel, 'u' => $userId]);
+            }
+        }
+
+        $summary = ['expired' => $events, 'old_level' => $oldLevel, 'new_level' => $newLevel];
+
+        // Offers nobody answered lapse at no cost
         $pdo->prepare(
             "UPDATE quests SET status = 'declined', resolved_at = :now
              WHERE user_id = :u AND status = 'offered'
@@ -97,7 +160,7 @@ final class DeliveryService
         $categoryIds = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
         if (!$categoryIds) {
             $pdo->commit();
-            return;
+            return $summary;
         }
 
         $context = self::context($pdo, $userId, $now);
@@ -116,6 +179,7 @@ final class DeliveryService
         }
 
         $pdo->commit();
+        return $summary;
     }
 
     private static function band(int $score): array

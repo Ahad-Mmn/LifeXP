@@ -30,8 +30,11 @@
             <li><strong>Time left:</strong> <span class="time-left {{ q.time_left.urgent ? 'urgent' : '' }}">{{ q.time_left.text }}</span> (ends {{ q.expires_at|date('d M, H:i') }})</li>
         {% elseif q.status == 'active' and q.due_date %}
             <li><strong>Due:</strong> {{ q.due_date|date('d M Y') }}</li>
-        {% elseif q.status == 'completed' and q.resolved_at %}
-            <li><strong>Completed:</strong> {{ q.resolved_at|date('d M Y, H:i') }}</li>
+        {% elseif q.resolved_at %}
+            <li><strong>{{ q.status|capitalize }}:</strong> {{ q.resolved_at|date('d M Y, H:i') }}</li>
+        {% endif %}
+        {% if skip and skip.expiry_cost > 0 %}
+            <li class="warn"><strong>If time runs out:</strong> you lose {{ skip.expiry_cost }} XP, even if you still have free skips.</li>
         {% endif %}
     </ul>
 
@@ -48,6 +51,38 @@
                     </form>
                 </div>
             </details>
+
+            {% if skip %}
+                <details class="confirm-skip {{ skip.cost > 0 ? 'danger' : '' }}">
+                    <summary class="btn btn-secondary btn-small">Skip this quest</summary>
+                    <div class="confirm-body">
+                        {% if skip.type == 'bonus' %}
+                            <p>Skipping a bonus quest costs no XP. A new quest may arrive in its place.</p>
+                        {% elseif skip.free_left > 0 %}
+                            <p>
+                                You have <strong>{{ skip.free_left }}</strong> free {{ skip.type }} skip{{ skip.free_left == 1 ? '' : 's' }}.
+                                This skip is free.{% if skip.free_left == 1 %} It is your last one.{% endif %}
+                            </p>
+                            <p class="hint">Free skips only come back when you complete a {{ skip.type }} quest.</p>
+                        {% else %}
+                            <p class="warn">
+                                <strong>No free {{ skip.type }} skips left.</strong>
+                                Skipping costs <strong>{{ skip.cost }} XP</strong> ({{ skip.pct }}% of the quest reward), and your level can drop.
+                            </p>
+                            <p class="hint">Complete a {{ skip.type }} quest to get 2 free skips again.</p>
+                        {% endif %}
+
+                        <form method="post" action="index.php?page=quest_skip" class="inline-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                            <input type="hidden" name="id" value="{{ q.id }}">
+                            <button type="submit" class="btn btn-small {{ skip.cost > 0 ? 'btn-danger' : 'btn-secondary' }}">
+                                {{ skip.cost > 0 ? 'Skip and lose ' ~ skip.cost ~ ' XP' : 'Yes, skip it' }}
+                            </button>
+                        </form>
+                    </div>
+                </details>
+            {% endif %}
+
             {% if q.quest_type == 'custom' %}
                 <a class="btn btn-small btn-secondary" href="index.php?page=quest_edit&amp;id={{ q.id }}">Edit</a>
                 <form method="post" action="index.php?page=quest_delete" class="inline-form"

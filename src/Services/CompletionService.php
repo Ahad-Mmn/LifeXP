@@ -157,6 +157,16 @@ final class CompletionService
                 'id'  => $userId,
             ]);
 
+            $skipColumn = match ($quest['quest_type']) {
+                'main'  => 'free_skips_main',
+                'side'  => 'free_skips_side',
+                default => null,
+            };
+            if ($skipColumn !== null) {
+                $this->pdo->prepare('UPDATE users SET ' . $skipColumn . ' = 2 WHERE id = :id')
+                    ->execute(['id' => $userId]);
+            }
+
             $newBadges = BadgeService::award($this->pdo, $userId, $streak, $newLevel);
 
             $this->pdo->commit();

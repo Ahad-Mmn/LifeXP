@@ -169,7 +169,6 @@ final class AuthController
             Session::logout();
             $this->redirect('login');
         }
-        DeliveryService::sync($this->pdo, (int) $user['id']);
 
         $uid = (int) $user['id'];
 

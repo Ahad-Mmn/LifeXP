@@ -26,6 +26,7 @@ use LifeXP\Controllers\AjaxController;
 use LifeXP\Controllers\LeaderboardController;
 use LifeXP\Controllers\OnboardingController;
 use LifeXP\Controllers\ProfileController;
+use LifeXP\Services\DeliveryService;
 
 $config = require __DIR__ . '/../config/config.php';
 
@@ -63,7 +64,6 @@ $twig->addGlobal('current_page', (string) ($_GET['page'] ?? 'home'));
 $twig->addGlobal('app_name', $config['app']['name']);
 $twig->addGlobal('current_user', Session::user());
 $twig->addGlobal('csrf_token', Csrf::token());
-$twig->addGlobal('flash', $isAjax ? [] : Session::pullFlash());
 $twig->addGlobal('legal_version', Legal::TERMS_VERSION);
 $twig->addGlobal('legal_updated', Legal::UPDATED);
 
@@ -80,6 +80,12 @@ if (Session::userId() !== null && !Session::isOnboarded() && !in_array($page, $o
     header('Location: index.php?page=onboarding');
     exit;
 }
+
+if (!$isAjax && Session::userId() !== null && Session::isOnboarded() && in_array($page, ['quests', 'dashboard'], true)) {
+    DeliveryService::sync($pdo, (int) Session::userId());
+}
+$twig->addGlobal('flash', $isAjax ? [] : Session::pullFlash());
+
 $auth = new AuthController($twig, $pdo);
 $questCtl = new QuestController($twig, $pdo);
 $ajax = new AjaxController($pdo);
@@ -195,6 +201,9 @@ switch ($page) {
         break;
     case 'quest_decline':
         $questCtl->declineBonus();
+        break;
+    case 'quest_skip':
+        $questCtl->skip();
         break;
     default:
         http_response_code(404);

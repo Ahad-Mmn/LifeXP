@@ -14,6 +14,7 @@ use LifeXP\Services\CompletionService;
 use LifeXP\Services\DeliveryService;
 use PDO;
 use Twig\Environment;
+use LifeXP\Services\SkipService;
 
 final class QuestController
 {
@@ -34,10 +35,6 @@ final class QuestController
         Session::requireLogin();
         $userId = (int) Session::userId();
         $ajax   = $this->isAjax();
-
-        if (!$ajax) {
-            DeliveryService::sync($this->pdo, $userId);
-        }
 
         $filters = $this->cleanFilters($_GET);
         $quests  = $this->decorate($this->quests->search($userId, $filters));
@@ -62,6 +59,7 @@ final class QuestController
 
         echo $this->twig->render('pages/quests.twig', $data + [
             'offers'       => $this->decorate($this->quests->offersFor($userId, $this->now())),
+            'free_skips'   => SkipService::freeSkips($this->pdo, $userId),
             'categories'   => $this->categories->all(),
             'types'        => Quest::TYPES,
             'difficulties' => array_keys(Quest::XP),
@@ -76,13 +74,15 @@ final class QuestController
     public function view(): void
     {
         Session::requireLogin();
+        $userId = (int) Session::userId();
 
-        $quest = $this->quests->findDetailed((int) ($_GET['id'] ?? 0), (int) Session::userId());
+        $quest = $this->quests->findDetailed((int) ($_GET['id'] ?? 0), $userId);
         if ($quest === null) {
             $this->notFound();
             return;
         }
         $quest = $this->decorate([$quest])[0];
+        $skip  = SkipService::preview($quest, SkipService::freeSkips($this->pdo, $userId));
 
         $ajax = $this->isAjax();
         if ($ajax) {
@@ -92,7 +92,7 @@ final class QuestController
 
         echo $this->twig->render(
             $ajax ? 'partials/quest_detail.twig' : 'pages/quest_view.twig',
-            ['q' => $quest, 'in_dialog' => $ajax]
+            ['q' => $quest, 'skip' => $skip, 'in_dialog' => $ajax]
         );
     }
 
@@ -257,6 +257,40 @@ final class QuestController
             $ok ? 'success' : 'error',
             $ok ? 'Offer declined.' : 'That offer is no longer available.'
         );
+        $this->redirect('quests');
+    }
+
+        /** SKIP (POST only): free while free skips last, then it costs XP */
+    public function skip(): void
+    {
+        Session::requireLogin();
+        $this->requirePost();
+
+        $userId = (int) Session::userId();
+        $result = SkipService::skip($this->pdo, (int) ($_POST['id'] ?? 0), $userId);
+
+        if ($result === null) {
+            Session::flash('error', 'That quest was not found, is no longer active or has run out of time.');
+            $this->redirect('quests');
+        }
+
+        if ($result['type'] === 'bonus') {
+            Session::flash('success', 'Bonus quest skipped.');
+        } elseif ($result['used_free']) {
+            Session::flash('success', 'Quest skipped. No XP lost. Free ' . $result['type']
+                . ' skips left: ' . $result['free_left'] . '.');
+        } elseif ($result['penalty'] > 0) {
+            Session::flash('error', 'Quest skipped. You lost ' . $result['penalty'] . ' XP.');
+        } else {
+            Session::flash('success', 'Quest skipped.');
+        }
+
+        if ($result['level_dropped']) {
+            Session::flash('error', 'Your level dropped to ' . $result['new_level']
+                . ' (' . $result['new_title'] . ').');
+        }
+
+        DeliveryService::sync($this->pdo, $userId);
         $this->redirect('quests');
     }
 

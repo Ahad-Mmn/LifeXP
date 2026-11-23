@@ -232,3 +232,9 @@ details.confirm-complete summary { list-style: none; cursor: pointer; display: i
 details.confirm-complete summary::-webkit-details-marker { display: none; }
 .confirm-body { background: var(--surface-2); border-radius: var(--radius-sm); padding: 1rem; margin-top: .8rem; }
 .confirm-body p { margin-top: 0; }
+details.confirm-skip { flex: 1 1 100%; }
+details.confirm-skip summary { list-style: none; cursor: pointer; display: inline-block; margin-top: 0; }
+details.confirm-skip summary::-webkit-details-marker { display: none; }
+details.confirm-skip.danger .confirm-body { border-left: 6px solid var(--danger); }
+.warn { color: var(--danger); }
+.skip-info { color: var(--muted); font-size: .9rem; margin: 0 0 1rem; }

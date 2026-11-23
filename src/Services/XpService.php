@@ -87,4 +87,17 @@ final class XpService
         }
         return $xp;
     }
+
+        /** Share of a quest's XP lost for skipping without a free skip, or for running out of time */
+    public const PENALTY_PERCENT = ['main' => 25, 'side' => 15];
+
+    /** XP lost for a main or side quest. Bonus and custom quests cost nothing. Never less than 2. */
+    public static function penaltyFor(string $type, int $xp): int
+    {
+        $percent = self::PENALTY_PERCENT[$type] ?? null;
+        if ($percent === null) {
+            return 0;
+        }
+        return max(2, (int) round($xp * $percent / 100));
+    }
 }
