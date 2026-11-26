@@ -2,22 +2,42 @@
     'use strict';
 
     // ---------- Helpers ----------
-    // textContent (not innerHTML) so server text can never inject HTML
+    // textContent keeps server text from ever being read as HTML
     function toast(text, type) {
         var box = document.getElementById('toasts');
         if (!box) {
             box = document.createElement('div');
             box.id = 'toasts';
-            document.body.appendChild(box);
+            document.body.append(box);
         }
         var t = document.createElement('div');
         t.className = 'toast toast-' + (type || 'success');
         t.textContent = text;
-        box.appendChild(t);
+        box.append(t);
         setTimeout(function () {
             t.classList.add('toast-hide');
             setTimeout(function () { t.remove(); }, 400);
         }, 3500);
+    }
+
+    // Replace an element's contents with server-rendered HTML.
+    // DOMPurify strips anything unsafe first; the result is inert nodes, so scripts never run.
+    // If the sanitiser did not load, nothing is inserted.
+    function setHtml(el, html) {
+        if (!window.DOMPurify) { return; }
+        var clean = window.DOMPurify.sanitize(html, {
+            RETURN_DOM_FRAGMENT: true,
+            SANITIZE_DOM: false
+        });
+        el.replaceChildren(clean);
+    }
+
+    window.LifeXP = { setHtml: setHtml };
+
+    // Only plain colour values are accepted from data- attributes
+    var SAFE_COLOUR = /^(#[0-9a-fA-F]{3,8}|var\(--[a-z0-9-]+\)|rgba?\([0-9., %]+\)|hsla?\([0-9., %deg]+\)|(linear|radial)-gradient\([#0-9a-zA-Z%.,() \-]*\))$/;
+    function safeColour(value) {
+        return (value && SAFE_COLOUR.test(value.trim())) ? value.trim() : null;
     }
 
     // Colours set from data- attributes, so templates need no inline style attributes
@@ -28,13 +48,16 @@
             if (!isNaN(w)) { el.style.width = Math.max(0, Math.min(100, w)) + '%'; }
         });
         root.querySelectorAll('[data-bg]').forEach(function (el) {
-            el.style.background = el.getAttribute('data-bg');
+            var c = safeColour(el.getAttribute('data-bg'));
+            if (c) { el.style.setProperty('background', c); }
         });
         root.querySelectorAll('[data-color]').forEach(function (el) {
-            el.style.color = el.getAttribute('data-color');
+            var c = safeColour(el.getAttribute('data-color'));
+            if (c) { el.style.setProperty('color', c); }
         });
         root.querySelectorAll('[data-border]').forEach(function (el) {
-            el.style.borderLeftColor = el.getAttribute('data-border');
+            var c = safeColour(el.getAttribute('data-border'));
+            if (c) { el.style.setProperty('border-left-color', c); }
         });
     }
     applyStyles();
@@ -74,10 +97,9 @@
             })
             .then(function (html) {
                 if (html === null) { return; }
-                results.innerHTML = html;
+                setHtml(results, html);
                 applyStyles(results);
                 results.classList.remove('loading');
-                history.replaceState(null, '', url);
             })
             .catch(function (err) {
                 if (err.name === 'AbortError') { return; }
@@ -115,7 +137,7 @@
             })
             .then(function (html) {
                 if (html === null) { return; }
-                dialogBody.innerHTML = html;
+                setHtml(dialogBody, html);
                 applyStyles(dialogBody);
                 if (!dialog.open) { dialog.showModal(); }
             })

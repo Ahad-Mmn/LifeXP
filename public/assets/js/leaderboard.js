@@ -13,7 +13,7 @@
         if (controller) { controller.abort(); }
         controller = new AbortController();
         box.classList.add('loading');
-            
+
         fetch(url, {
             headers: { 'X-Requested-With': 'fetch' },
             credentials: 'same-origin',
@@ -26,9 +26,8 @@
         })
         .then(function (html) {
             if (html === null) { return; }
-            box.innerHTML = html;
+            window.LifeXP.setHtml(box, html);
             box.classList.remove('loading');
-            history.replaceState(null, '', url);
         })
         .catch(function (err) {
             if (err.name === 'AbortError') { return; }

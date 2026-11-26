@@ -3,7 +3,7 @@
 
     var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // Counters rise from zero to their value
+    // Counters count up to their value
     document.querySelectorAll('[data-count]').forEach(function (el) {
         var target = parseInt(el.getAttribute('data-count'), 10);
         if (isNaN(target) || target <= 0 || reduceMotion) { return; }
@@ -29,7 +29,6 @@
 
     function load() {
         var params = new URLSearchParams(new FormData(form));
-        var pageUrl = 'index.php?' + params.toString();
         params.set('page', 'home_board');
 
         if (controller) { controller.abort(); }
@@ -46,9 +45,8 @@
             return res.text();
         })
         .then(function (html) {
-            box.innerHTML = html;
+            window.LifeXP.setHtml(box, html);
             box.classList.remove('loading');
-            history.replaceState(null, '', pageUrl);
         })
         .catch(function (err) {
             if (err.name === 'AbortError') { return; }
