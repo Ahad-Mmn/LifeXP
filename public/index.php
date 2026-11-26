@@ -28,6 +28,7 @@ use LifeXP\Controllers\OnboardingController;
 use LifeXP\Controllers\ProfileController;
 use LifeXP\Controllers\HomeController;
 use LifeXP\Services\DeliveryService;
+use LifeXP\Services\Captcha;
 
 $config = require __DIR__ . '/../config/config.php';
 
@@ -222,6 +223,8 @@ switch ($page) {
     case 'quest_skip':
         $questCtl->skip();
         break;
+    case 'captcha_image':
+        Captcha::image(isset($_GET['new']));
     default:
         http_response_code(404);
         echo $twig->render('pages/404.twig');

@@ -292,3 +292,4 @@ details.confirm-skip.danger .confirm-body { border-left: 6px solid var(--danger)
 .badge-earned.badge-tier-2 { border-color: #8c95a3; }
 .badge-earned.badge-tier-3 { border-color: #d99a00; }
 .badge-earned.badge-tier-4 { border-color: var(--violet); }
+.captcha-img { display: block; margin: .4rem 0; border-radius: .5rem; }

@@ -18,8 +18,10 @@
         <input type="password" id="password" name="password" maxlength="72"
                autocomplete="current-password" required>
 
-        <label for="captcha">Are you human? What is {{ captcha_question }} ?</label>
-        <input type="text" id="captcha" name="captcha" maxlength="4" autocomplete="off" required>
+        <label for="captcha">Type the characters you see</label>
+        <img class="captcha-img" id="captcha-img" src="index.php?page=captcha_image" width="190" height="64" alt="Captcha image with five characters">
+        <button type="button" class="btn" data-captcha-refresh>New image</button>
+        <input type="text" id="captcha" name="captcha" maxlength="8" autocomplete="off" required>
 
         <button type="submit" class="btn">Log in</button>
     </form>

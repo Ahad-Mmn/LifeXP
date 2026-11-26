@@ -49,7 +49,7 @@ final class AuthController
                 $errors[] = 'Your session expired. Please try again.';
             }
             if (!Captcha::verify($captcha)) {
-                $errors[] = 'Wrong answer to the maths question.';
+                $errors[] = 'The characters did not match the image. Please try again.';
             }
             if (!$accepted) {
                 $errors[] = 'You must accept the Terms of Use, Privacy Policy and Community Rules.';
@@ -121,7 +121,7 @@ final class AuthController
             } elseif ($this->limiter->isLocked($ip, $username)) {
                 $errors[] = 'Too many failed attempts. Please wait 15 minutes and try again.';
             } elseif (!Captcha::verify($captcha)) {
-                $errors[] = 'Wrong answer to the maths question.';
+                $errors[] = 'The characters did not match the image. Please try again.';
             } else {
                 $user = $this->users->findByUsername($username);
 

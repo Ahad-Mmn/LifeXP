@@ -3,17 +3,17 @@
 
     // ---------- Helpers ----------
     // textContent keeps server text from ever being read as HTML
+    var toastBox = null;
     function toast(text, type) {
-        var box = document.getElementById('toasts');
-        if (!box) {
-            box = document.createElement('div');
-            box.id = 'toasts';
-            document.body.append(box);
+        if (!toastBox) {
+            toastBox = document.createElement('div');
+            toastBox.id = 'toasts';
+            document.body.append(toastBox);
         }
         var t = document.createElement('div');
         t.className = 'toast toast-' + (type || 'success');
         t.textContent = text;
-        box.append(t);
+        toastBox.append(t);
         setTimeout(function () {
             t.classList.add('toast-hide');
             setTimeout(function () { t.remove(); }, 400);
@@ -268,4 +268,13 @@
             meterText.textContent = labels[level];
         });
     }
+
+        // ---------- Captcha image refresh ----------
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest ? e.target.closest('[data-captcha-refresh]') : null;
+        var img = document.getElementById('captcha-img');
+        if (btn && img) {
+            img.src = 'index.php?page=captcha_image&new=1&r=' + Date.now();
+        }
+    });
 })();
