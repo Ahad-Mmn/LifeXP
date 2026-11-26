@@ -44,6 +44,7 @@ final class CompletionService
             // FOR UPDATE locks the row, so a double-click or two tabs cannot award XP twice
             $stmt = $this->pdo->prepare(
                 "SELECT id, title, xp_reward, category_id, difficulty, quest_type,
+                        (SELECT t.track FROM quest_templates t WHERE t.id = quests.template_id) AS track,
                         TIMESTAMPDIFF(SECOND, created_at, NOW()) AS age_seconds
                  FROM quests
                  WHERE id = :id AND user_id = :uid AND status = 'active'
@@ -125,16 +126,17 @@ final class CompletionService
 
             $this->pdo->prepare(
                 'INSERT INTO quest_completions
-                    (quest_id, user_id, xp_earned, category_id, difficulty, quest_type, completed_at)
-                 VALUES (:q, :u, :xp, :cat, :diff, :type, :at)'
+                    (quest_id, user_id, xp_earned, category_id, difficulty, quest_type, track, completed_at)
+                 VALUES (:q, :u, :xp, :cat, :diff, :type, :track, :at)'
             )->execute([
-                'q'    => $questId,
-                'u'    => $userId,
-                'xp'   => $earned,
-                'cat'  => $quest['category_id'],
-                'diff' => $quest['difficulty'],
-                'type' => $quest['quest_type'],
-                'at'   => $nowStr,
+                'q'     => $questId,
+                'u'     => $userId,
+                'xp'    => $earned,
+                'cat'   => $quest['category_id'],
+                'diff'  => $quest['difficulty'],
+                'type'  => $quest['quest_type'],
+                'track' => $quest['track'],
+                'at'    => $nowStr,
             ]);
 
             if ($earned > 0) {
@@ -167,7 +169,7 @@ final class CompletionService
                     ->execute(['id' => $userId]);
             }
 
-            $newBadges = BadgeService::award($this->pdo, $userId, $streak, $newLevel);
+            $newBadges = BadgeService::award($this->pdo, $userId);
 
             $this->pdo->commit();
 

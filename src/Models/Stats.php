@@ -58,14 +58,16 @@ final class Stats
         ];
     }
 
-    /** Every badge, with earned_at filled in (or null if still locked) */
+    /** Every badge with its rule, its category and when the player earned it (null if still locked) */
     public function badgesForUser(int $userId): array
     {
         $stmt = $this->pdo->prepare(
-            'SELECT b.id, b.name, b.description, b.icon, ub.earned_at
+            'SELECT b.id, b.name, b.description, b.icon, b.category_id, b.track, b.metric,
+                    b.threshold, b.tier, b.sort_order, c.name AS category_name, ub.earned_at
              FROM badges b
+             LEFT JOIN categories c ON c.id = b.category_id
              LEFT JOIN user_badges ub ON ub.badge_id = b.id AND ub.user_id = :u
-             ORDER BY b.id'
+             ORDER BY (b.category_id IS NULL) DESC, c.name, b.sort_order, b.id'
         );
         $stmt->execute(['u' => $userId]);
         return $stmt->fetchAll();

@@ -1,22 +1,176 @@
 {% extends "base.twig" %}
 
-{% block title %}Home | {{ app_name }}{% endblock %}
+{% block title %}{{ app_name }} | Turn real life into an RPG{% endblock %}
 
 {% block content %}
-    <h2>Turn real life into an RPG</h2>
-    <p>Complete everyday quests, earn XP and level up.</p>
-
-    {% if not current_user %}
+<section class="hero-band">
+    {% if player and onboarded %}
+        <p class="eyebrow">Welcome back</p>
+        <h1>{{ player.user.username }}</h1>
+        <p class="hero-title">Level {{ player.progress.level }} &middot; {{ player.progress.title }}</p>
+        <div class="xp-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ player.progress.percent }}">
+            <div class="xp-fill" data-width="{{ player.progress.percent }}"></div>
+        </div>
+        <p class="xp-text">{{ player.progress.xp_in_level }} / {{ player.progress.xp_needed }} XP to level {{ player.progress.level + 1 }}</p>
         <p>
-            <a class="btn" href="index.php?page=register">Register</a>
-            <a class="btn btn-secondary" href="index.php?page=login">Log in</a>
+            &#128293; Streak: <strong>{{ player.streak }}</strong> day{{ player.streak == 1 ? '' : 's' }}
+            &middot; Waiting for you: <strong>{{ player.open.main }}</strong> main, <strong>{{ player.open.side }}</strong> side
+            {% if player.open.offers > 0 %}, <strong>{{ player.open.offers }}</strong> bonus offer{{ player.open.offers == 1 ? '' : 's' }}{% endif %}
         </p>
+        <div class="hero-actions">
+            <a class="btn btn-success" href="index.php?page=quests">Open my quests</a>
+            <a class="btn btn-secondary" href="index.php?page=dashboard">Dashboard</a>
+        </div>
+    {% elseif player %}
+        <p class="eyebrow">Almost there</p>
+        <h1>Finish setting up, {{ player.user.username }}</h1>
+        <p>Choose what you want to work on and we will start sending you quests.</p>
+        <div class="hero-actions">
+            <a class="btn btn-success" href="index.php?page=onboarding">Choose my interests</a>
+        </div>
+    {% else %}
+        <p class="eyebrow">Real life, with levels</p>
+        <h1>Turn everyday life into an RPG</h1>
+        <p>Pick what you care about, get quests chosen for you, earn XP, build streaks and climb the ranks.</p>
+        <div class="hero-actions">
+            <a class="btn btn-success" href="index.php?page=register">Start my adventure</a>
+            <a class="btn btn-secondary" href="index.php?page=login">Log in</a>
+        </div>
     {% endif %}
+</section>
 
-    <h3>Quest categories</h3>
-    <ul>
-        {% for c in categories %}
-            <li style="color: {{ c.color }};">{{ c.name }}</li>
+<section class="stat-grid home-stats" aria-label="Site totals">
+    <div class="stat"><strong data-count="{{ totals.players }}">{{ totals.players|number_format }}</strong><span>Players</span></div>
+    <div class="stat"><strong data-count="{{ totals.completions }}">{{ totals.completions|number_format }}</strong><span>Quests completed</span></div>
+    <div class="stat"><strong data-count="{{ totals.xp }}">{{ totals.xp|number_format }}</strong><span>XP earned</span></div>
+</section>
+
+<section class="home-section">
+    <h2>How it works</h2>
+    <div class="steps">
+        <div class="step">
+            <span class="step-num">1</span>
+            <h3>Choose your interests</h3>
+            <p>Pick the categories you want to grow in. Quests only come from the ones you choose.</p>
+        </div>
+        <div class="step">
+            <span class="step-num">2</span>
+            <h3>Quests find you</h3>
+            <p>A main quest, side quests and the occasional bonus offer arrive for you. Finish them before time runs out. Skipping or running out of time can cost XP.</p>
+        </div>
+        <div class="step">
+            <span class="step-num">3</span>
+            <h3>Level up</h3>
+            <p>Earn XP, keep your streak alive, collect badges and climb the leaderboards.</p>
+        </div>
+    </div>
+</section>
+
+<section class="home-section">
+    <h2>{{ cards|length }} categories to grow in</h2>
+    <div class="cat-grid">
+        {% for c in cards %}
+            <a class="cat-card" href="{{ current_user ? 'index.php?page=quests&category=' ~ c.id : 'index.php?page=register' }}">
+                <span class="pick-dot" data-bg="{{ c.color }}">{{ c.name|first|upper }}</span>
+                <span>
+                    <strong>{{ c.name }}</strong>
+                    <small>{{ c.quests }} quests</small>
+                </span>
+            </a>
         {% endfor %}
-    </ul>
+    </div>
+</section>
+
+<section class="home-section">
+    <h2>Top players</h2>
+    <form method="get" action="index.php" class="board-filters" id="home-board-form">
+        <input type="hidden" name="page" value="home">
+
+        <div class="chips" role="radiogroup" aria-label="Category">
+            <label class="chip">
+                <input type="radio" name="category" value="" {% if filters.category_id == 0 %}checked{% endif %}>
+                <span>All</span>
+            </label>
+            {% for c in cards %}
+                <label class="chip">
+                    <input type="radio" name="category" value="{{ c.id }}" {% if filters.category_id == c.id %}checked{% endif %}>
+                    <span>{{ c.name }}</span>
+                </label>
+            {% endfor %}
+        </div>
+
+        <div class="chips board-period" role="radiogroup" aria-label="Period">
+            {% for key, label in periods %}
+                <label class="chip">
+                    <input type="radio" name="period" value="{{ key }}" {% if filters.period == key %}checked{% endif %}>
+                    <span>{{ label }}</span>
+                </label>
+            {% endfor %}
+            <button type="submit" class="btn btn-small">Show</button>
+        </div>
+    </form>
+
+    <div id="home-board-results">
+        {% include 'partials/home_board.twig' %}
+    </div>
+</section>
+
+{% if featured %}
+<section class="home-section">
+    <h2>A taste of the quest library</h2>
+    <p class="hint">Your own quests are chosen for you from the categories you pick. Here are three examples.</p>
+    <div class="quest-list">
+        {% for f in featured %}
+            <article class="quest" data-border="{{ f.category_color }}">
+                <div class="quest-main">
+                    <h3>{{ f.title }}</h3>
+                    <p>{{ f.summary }}</p>
+                    <p class="meta">
+                        <span class="tag" data-bg="{{ f.category_color }}">{{ f.category_name }}</span>
+                        <span class="tag tag-type">{{ f.type|capitalize }}</span>
+                        <span class="tag tag-{{ f.difficulty }}">{{ f.difficulty|capitalize }}</span>
+                        <strong>+{{ f.xp }} XP</strong>
+                        &middot; {{ f.time }}
+                    </p>
+                </div>
+            </article>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% if badges %}
+<section class="home-section">
+    <h2>Badges you can earn</h2>
+    <div class="badge-grid">
+        {% for b in badges %}
+            <div class="badge">
+                <span class="badge-icon">&#{{ b.icon }};</span>
+                <strong>{{ b.name }}</strong>
+                <small>{{ b.description }}</small>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<section class="home-section">
+    <div class="card wide-card soon-card">
+        <span class="tag tag-epic">In development</span>
+        <h2>The LifeXP forum</h2>
+        <p>A place to share wins and cheer each other on is on its way.</p>
+        <a class="btn btn-secondary" href="index.php?page=forum">See what is planned</a>
+    </div>
+</section>
+
+{% if not current_user %}
+<section class="home-section home-cta">
+    <h2>Ready to start?</h2>
+    <a class="btn btn-success" href="index.php?page=register">Create my hero</a>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="assets/js/home.js"></script>
 {% endblock %}

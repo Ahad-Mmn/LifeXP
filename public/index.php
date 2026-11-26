@@ -26,6 +26,7 @@ use LifeXP\Controllers\AjaxController;
 use LifeXP\Controllers\LeaderboardController;
 use LifeXP\Controllers\OnboardingController;
 use LifeXP\Controllers\ProfileController;
+use LifeXP\Controllers\HomeController;
 use LifeXP\Services\DeliveryService;
 
 $config = require __DIR__ . '/../config/config.php';
@@ -43,7 +44,7 @@ header('X-Frame-Options: DENY');
 header('X-Content-Type-Options: nosniff');
 header('Referrer-Policy: strict-origin-when-cross-origin');
 header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
-header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'");
+header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'");
 header('Cache-Control: no-store');   // logged-in pages must not be cached
 if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
     header('Strict-Transport-Security: max-age=31536000');
@@ -67,21 +68,32 @@ $twig->addGlobal('csrf_token', Csrf::token());
 $twig->addGlobal('legal_version', Legal::TERMS_VERSION);
 $twig->addGlobal('legal_updated', Legal::UPDATED);
 
-try {
-    $pdo = Database::connect($config['db']);
-} catch (\PDOException $e) {
-    http_response_code(500);
-    exit($config['app']['debug'] ? 'Database error: ' . htmlspecialchars($e->getMessage()) : 'Database unavailable.');
-}
+set_exception_handler(function (\Throwable $e) use ($twig, $config): void {
+    error_log('LifeXP error: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
+
+    if (!headers_sent()) {
+        http_response_code(500);
+    }
+
+    try {
+        echo $twig->render('pages/500.twig', [
+            'detail' => $config['app']['debug'] ? $e->getMessage() : null,
+        ]);
+    } catch (\Throwable $inner) {
+        echo 'Something went wrong. Please try again later.';
+    }
+});
+
+$pdo = Database::connect($config['db']);
 
 $page = (string) ($_GET['page'] ?? 'home');
-$openPages = ['home', 'forum', 'logout', 'onboarding', 'onboarding_samples', 'terms', 'privacy_policy', 'community_rules'];     
+$openPages = ['home', 'home_board', 'forum', 'logout', 'onboarding', 'onboarding_samples', 'terms', 'privacy_policy', 'community_rules'];    
 if (Session::userId() !== null && !Session::isOnboarded() && !in_array($page, $openPages, true)) {
     header('Location: index.php?page=onboarding');
     exit;
 }
 
-if (!$isAjax && Session::userId() !== null && Session::isOnboarded() && in_array($page, ['quests', 'dashboard'], true)) {
+if (!$isAjax && Session::userId() !== null && Session::isOnboarded() && in_array($page, ['home', 'quests', 'dashboard'], true)) {
     DeliveryService::sync($pdo, (int) Session::userId());
 }
 $twig->addGlobal('flash', $isAjax ? [] : Session::pullFlash());
@@ -93,11 +105,16 @@ $leaderboard = new LeaderboardController($twig, $pdo);
 $admin = new AdminController($twig, $pdo);
 $onboarding = new OnboardingController($twig, $pdo);
 $profile = new ProfileController($twig, $pdo);
+$home = new HomeController($twig, $pdo);
 
 switch ($page) {
     case 'home':
-        $categories = $pdo->query('SELECT id, name, color FROM categories ORDER BY name')->fetchAll();
-        echo $twig->render('pages/home.twig', ['categories' => $categories]);
+    case 'home':
+        $home->index();
+        break;
+    case 'home_board':
+        $home->board();
+        break;
         break;
     case 'register':
         $auth->register();

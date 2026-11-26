@@ -186,4 +186,25 @@ final class Quest
         $stmt = $this->pdo->prepare('DELETE FROM quests WHERE id = :id AND user_id = :uid');
         $stmt->execute(['id' => $id, 'uid' => $userId]);
     }
+
+        /** How many quests of each kind are waiting, and how many bonus offers are open */
+    public function openCounts(int $userId): array
+    {
+        $stmt = $this->pdo->prepare(
+            "SELECT quest_type, status, COUNT(*) AS n FROM quests
+             WHERE user_id = :uid AND status IN ('active','offered')
+             GROUP BY quest_type, status"
+        );
+        $stmt->execute(['uid' => $userId]);
+
+        $counts = ['main' => 0, 'side' => 0, 'bonus' => 0, 'custom' => 0, 'offers' => 0];
+        foreach ($stmt->fetchAll() as $r) {
+            if ($r['status'] === 'offered') {
+                $counts['offers'] += (int) $r['n'];
+            } elseif (isset($counts[$r['quest_type']])) {
+                $counts[$r['quest_type']] += (int) $r['n'];
+            }
+        }
+        return $counts;
+    }
 }

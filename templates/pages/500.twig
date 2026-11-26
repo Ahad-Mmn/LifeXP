@@ -1,0 +1,12 @@
+{% extends "base.twig" %}
+
+{% block title %}Something went wrong | {{ app_name }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Something went wrong</h2>
+    <p>We could not complete that request. Please try again in a moment.</p>
+    {% if detail %}<p class="hint">{{ detail }}</p>{% endif %}
+    <p><a href="index.php?page=home">Back to the home page</a></p>
+</div>
+{% endblock %}

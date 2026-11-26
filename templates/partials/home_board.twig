@@ -1,0 +1,31 @@
+<h3 class="board-heading">{{ heading }}</h3>
+
+{% if rows is empty %}
+    <div class="card">
+        <p>Nobody is on this board yet. Be the first.</p>
+    </div>
+{% else %}
+    <div class="table-wrap">
+        <table class="board">
+            <thead>
+                <tr><th>#</th><th>Hero</th><th>Title</th><th>Level</th><th>XP</th></tr>
+            </thead>
+            <tbody>
+                {% for r in rows %}
+                    <tr>
+                        <td>{{ r.rank }}</td>
+                        <td>{{ r.username }}</td>
+                        <td>{{ r.title }}</td>
+                        <td>{{ r.level }}</td>
+                        <td>{{ r.value }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}
+
+<p class="hint">
+    XP from delivered quests.
+    <a href="index.php?page=leaderboard&amp;category={{ filters.category_id }}&amp;period={{ filters.period }}">See the full leaderboard</a>
+</p>

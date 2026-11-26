@@ -17,6 +17,7 @@ use PDO;
 use Throwable;
 use Twig\Environment;
 use LifeXP\Core\Legal;
+use LifeXP\Services\BadgeService;
 
 final class ProfileController
 {
@@ -92,6 +93,7 @@ final class ProfileController
         } elseif ($tab === 'badges') {
             $badges = $this->stats->badgesForUser($userId);
             $data += [
+                'groups'       => $this->groupBadges($badges, BadgeService::metrics($this->pdo, $userId)),
                 'badges'       => $badges,
                 'earned_count' => $this->countEarned($badges),
             ];
@@ -402,6 +404,30 @@ final class ProfileController
     private function countEarned(array $badges): int
     {
         return count(array_filter($badges, fn (array $b) => $b['earned_at'] !== null));
+    }
+
+    /** Groups badges by category (general first) and works out progress toward each locked one */
+    private function groupBadges(array $badges, array $metrics): array
+    {
+        $groups = [];
+
+        foreach ($badges as $b) {
+            $name      = $b['category_name'] ?? 'General';
+            $value     = BadgeService::valueFor($b, $metrics);
+            $threshold = max(1, (int) $b['threshold']);
+            $earned    = $b['earned_at'] !== null;
+
+            $groups[$name] ??= ['name' => $name, 'earned' => 0, 'badges' => []];
+            $groups[$name]['badges'][] = $b + [
+                'value'   => min($value, $threshold),
+                'percent' => $earned ? 100 : min(99, (int) floor($value * 100 / $threshold)),
+            ];
+            if ($earned) {
+                $groups[$name]['earned']++;
+            }
+        }
+
+        return array_values($groups);
     }
 
     private function requirePost(string $tab): void

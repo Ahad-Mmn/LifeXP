@@ -5,6 +5,6 @@ namespace LifeXP\Core;
 
 final class Legal
 {
-    public const TERMS_VERSION = '1.0';
-    public const UPDATED = '21 November 2026';
+    public const TERMS_VERSION = '1.1';
+    public const UPDATED = '22 November 2026';
 }

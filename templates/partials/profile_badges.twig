@@ -1,11 +1,33 @@
+{% set tier_names = {1: 'Bronze', 2: 'Silver', 3: 'Gold', 4: 'Legend'} %}
+
 <h3 class="section-title">Badges ({{ earned_count }} / {{ badges|length }})</h3>
-<div class="badge-grid">
-    {% for b in badges %}
-        <div class="badge {{ b.earned_at ? 'badge-earned' : 'badge-locked' }}">
-            <span class="badge-icon">&#{{ b.icon }};</span>
-            <strong>{{ b.name }}</strong>
-            <small>{{ b.description }}</small>
-            {% if b.earned_at %}<small class="badge-date">Unlocked {{ b.earned_at|date('d M Y') }}</small>{% endif %}
-        </div>
-    {% endfor %}
-</div>
+<p class="hint">
+	Badges unlock by themselves when you complete delivered quests. Custom quests do not count toward them,
+	and badges you have earned are never taken back.
+</p>
+
+{% for g in groups %}
+<section class="badge-group">
+	<h4>
+		{{ g.name }} <small>{{ g.earned }} / {{ g.badges|length }}</small>
+	</h4>
+	<div class="badge-grid">
+		{% for b in g.badges %}
+		<div class="badge badge-tier-{{ b.tier }} {{ b.earned_at ? 'badge-earned' : 'badge-locked' }}">
+			<span class="badge-icon">&#{{ b.icon }};</span>
+			<strong>{{ b.name }}</strong>
+			<small>{{ b.description }}</small>
+			<span class="tag tier-tag">{{ tier_names[b.tier] }}</span>
+			{% if b.earned_at %}
+			<small class="badge-date">Unlocked {{ b.earned_at|date('d M Y') }}</small>
+			{% else %}
+			<div class="badge-progress" aria-hidden="true">
+				<div class="badge-progress-fill" data-width="{{ b.percent }}"></div>
+			</div>
+			<small>{{ b.value|number_format }} / {{ b.threshold|number_format }}</small>
+			{% endif %}
+		</div>
+		{% endfor %}
+	</div>
+</section>
+{% endfor %}
